@@ -75,3 +75,12 @@ class Sample:
         pd.Series: Series representing the column (variable).
         """
         return self._data[name]
+
+    def project(self, variables):
+        """
+        Returns a view on selected variables.
+        :param variables: Variables to
+        :return:
+        """
+        return Sample(self._data[variables],
+                      {key: self._static_variables[key] for key in variables if key in self._static_variables})
