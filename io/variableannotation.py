@@ -9,8 +9,8 @@ class VariableType(Enum):
         static: Represents a static variable that does not change over time.
         dynamic: Represents a dynamic variable that is time-dependent and may change over time.
     """
-    static = "static"
-    dynamic = "dynamic"
+    STATIC = "static"
+    DYNAMIC = "dynamic"
 
 
 class StaticVariable(Enum):
@@ -23,16 +23,39 @@ class StaticVariable(Enum):
         slow: Represents a dynamic variable that is changing over time but this
     change cannot be captured by the experiments.
     """
-    fixed = "fixed"
-    slow = "slow"
+    FIXED = "fixed"
+    SLOW = "slow"
 
 
 class Source(Enum):
     """
     Enumeration class representing source of the data.
     """
-    metabolomics = "metabolomics"
-    sequencing = "sequencing"
-    questionaire = "questionaire"
-    lipidomics = "lipidomics"
+    METABOLOMICS = "metabolomics"
+    LIPIDOMICS = "lipidomics"
+    DEMOGRAPHICS = "demographics"
+    LIFESTYLE = "lifestyle"
+    ANTHROPOMETRIC = "anthropometric"
+    BIOCHEMICAL = "biochemical"
+    DIETARY = "dietary"
+    ACTIVITY = "activity"
+    AGES = "ages"
+    GENETICS = "genetics"
+    MICROBIOME = "microbiome"
+    CAMERA = "camera"
 
+
+class Type(Enum):
+    """
+    Enumberation whether the variable is discrete or continous.
+    """
+    DISCRETE = "discrete"
+    CONTINUOUS = "continuous"
+
+class Reliability(Enum):
+    """
+    Shows how reliable the measurements are - whether there is some error expected or not.
+    """
+    SUBJECTIVE = "subjective"
+    EXACT = "exact"
+    NOISY = "noisy"
