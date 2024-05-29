@@ -61,6 +61,7 @@ class Data:
         variables = set()
         for sample in self._list:
             variables = variables.intersection(sample._data.columns)
+        variables.remove("Time")
         return variables
 
     def project(self, variables):
@@ -77,6 +78,18 @@ class Data:
         :return: List of pandas data frames.
         """
         return [sample.get_data() for sample in self._list]
+
+
+    def flattern(self):
+        """
+        Returns a data frame with dynamic variables stored in a single data frame for all samples. This is useful especially when learning the prior distribution of a DBN.
+        :return: Pandas data frame with all common dynamic variables.
+        """
+        variables = self.get_common_dynamic_variables()
+        df = pd.DataFrame(columns=variables)
+        for sample in self._list:
+            df = df.append(sample.get_data())
+        return df
 
 
     def __iter__(self):
