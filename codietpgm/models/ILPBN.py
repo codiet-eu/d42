@@ -1,4 +1,4 @@
-from BayesianNetwork import BayesianNetwork
+from codietpgm.models.BayesianNetwork import BayesianNetwork
 from codietpgm.io.variableannotation import Type
 import gurobipy as gp
 from gurobipy import GRB

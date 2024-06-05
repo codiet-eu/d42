@@ -1,5 +1,5 @@
 from pgmpy.models import BayesianModel
-from BayesianNetwork import BayesianNetwork
+from codietpgm.models.BayesianNetwork import BayesianNetwork
 from pgmpy.inference import VariableElimination
 from pgmpy.estimators import HillClimbSearch
 from pgmpy.estimators import BicScore

@@ -1,4 +1,4 @@
-from DynamicBayesianNetwork import DynamicBayesianNetwork
+from codietpgm.models.DynamicBayesianNetwork import DynamicBayesianNetwork
 from codietpgm.utils.runR import run_R
 from codietpgm.utils.convert import m2graph
 

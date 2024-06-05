@@ -1,6 +1,6 @@
 import unittest
 import pandas as pd
-from codietpgm.io import Data
+from codietpgm.io.data import Data
 from codietpgm.io.sample import Sample
 from codietpgm.models import ILPBN
 
