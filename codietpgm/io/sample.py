@@ -82,5 +82,5 @@ class Sample:
         :param variables: Variables to
         :return:
         """
-        return Sample(self._data[variables],
+        return Sample(self._data[list(variables.intersection(self._data.keys()))],
                       {key: self._static_variables[key] for key in variables if key in self._static_variables})

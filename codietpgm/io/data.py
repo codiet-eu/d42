@@ -94,21 +94,23 @@ class Data:
         variables = set()
         for sample in self._list:
             variables = variables.intersection(sample.get_static_variables().keys())
-        variables.remove("Time")
+        if "Time" in variables:
+            variables.remove("Time")
         return variables
 
     def variables_for_annotation(self, annotation):
-        variables = {}
-        for variable, annotations in self._variables_annotation:
+        variables = set()
+        for variable, annotations in self._variables_annotation.items():
             if annotation in annotations:
                 variables.add(variable)
         return variables
 
     def static_data_as_df(self):
         variables = self.get_common_static_variables()
-        df = pd.DataFrame(columns=variables)
+        df = pd.DataFrame(columns=list(variables))
         for sample in self._list:
-            df = df.append(sample.get_static_variables(), ignore_index=True)
+            df = df._append(sample.get_static_variables(), ignore_index=True)
+        return df
 
     def __iter__(self):
         """
