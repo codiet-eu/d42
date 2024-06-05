@@ -9,14 +9,14 @@ from pgmpy.sampling import GibbsSampling
 class PgmpyBN(BayesianNetwork):
     """Class for Probabilistic Graphical Models using Bayesian networks."""
 
-    def __init__(self, structure_and_weights=False):
+    def __init__(self):
         """
         Creates a new instance of the Bayesian Network class.
-    
+
         Parameters:
         structure_and_weights (bool): Indicates that the model is capable of learning the structure and weights together.
         """
-        super().__init__(structure_and_weights)
+        super().__init__(False)
         self._model = BayesianModel()
 
 

@@ -1,11 +1,5 @@
-from abc import ABC, abstractmethod
-from pgmpy.models import BayesianModel
-from pgmpy.estimators import BayesianEstimator
-from PGM import PGM
-from pgmpy.inference import VariableElimination
-from pgmpy.estimators import HillClimbSearch
-from pgmpy.estimators import BicScore
-from pgmpy.sampling import GibbsSampling
+from abc import ABC
+from codietpgm.PGM import PGM
 
 
 class BayesianNetwork(PGM, ABC):

@@ -1,6 +1,6 @@
 from DynamicBayesianNetwork import DynamicBayesianNetwork
-from utils.runR import run_R
-from utils.convert import m2graph
+from codietpgm.utils.runR import run_R
+from codietpgm.utils.convert import m2graph
 
 
 class MCMCDBN(DynamicBayesianNetwork):

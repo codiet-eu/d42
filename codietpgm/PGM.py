@@ -36,4 +36,5 @@ class PGM(ABC):
     @abstractmethod
     def learn_structure(self, data):
         """Learn the structure of the model from the given data."""
-        pass
+        if self.__structure_and_weights:
+            self.learn_weights(data)

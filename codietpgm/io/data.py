@@ -1,5 +1,4 @@
 import pandas as pd
-from io.sample import Sample
 
 
 class Data:
@@ -70,7 +69,8 @@ class Data:
         :param variables: Variables to project.
         :return: A new dataset that contains only selected variables.
         """
-        return Data([sample.project(variables) for sample in self._list], variables_annotation=self._variables_annotation)
+        return Data([sample.project(variables) for sample in self._list],
+                    variables_annotation=self._variables_annotation)
 
     def dynamic_variables(self):
         """
@@ -78,7 +78,6 @@ class Data:
         :return: List of pandas data frames.
         """
         return [sample.get_data() for sample in self._list]
-
 
     def flattern(self):
         """
@@ -91,6 +90,25 @@ class Data:
             df = df.append(sample.get_data())
         return df
 
+    def get_common_static_variables(self):
+        variables = set()
+        for sample in self._list:
+            variables = variables.intersection(sample.get_static_variables().keys())
+        variables.remove("Time")
+        return variables
+
+    def variables_for_annotation(self, annotation):
+        variables = {}
+        for variable, annotations in self._variables_annotation:
+            if annotation in annotations:
+                variables.add(variable)
+        return variables
+
+    def static_data_as_df(self):
+        variables = self.get_common_static_variables()
+        df = pd.DataFrame(columns=variables)
+        for sample in self._list:
+            df = df.append(sample.get_static_variables(), ignore_index=True)
 
     def __iter__(self):
         """
@@ -100,4 +118,3 @@ class Data:
         iterator: Iterator over the list of samples.
         """
         return iter(self._list)
-

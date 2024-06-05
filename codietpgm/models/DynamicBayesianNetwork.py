@@ -1,6 +1,6 @@
-from abc import ABC, abstractmethod
-from PGM import PGM
-import pandas as pd
+from abc import ABC
+from codietpgm.PGM import PGM
+
 
 class DynamicBayesianNetwork(PGM, ABC):
     """Abstract class for dynamic Bayesian networks (DBNs). Generally, DBNs consist of initial Bayesian network which
