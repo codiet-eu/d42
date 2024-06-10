@@ -1,7 +1,9 @@
+from codietpgm.learners.DBNLearner import DBNLearner
+
 from causalnex.structure import dynotears as dnt
 
 
-class BayesianNetwork(PGM):
+class DyNoTearsDBN(DBNLearner):
     """Class for Probabilistic Graphical Models using Bayesian networks."""
 
     def __init__(self):

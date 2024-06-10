@@ -1,5 +1,4 @@
 import pandas as pd
-from io.sample import Sample
 
 
 class Data:
@@ -61,6 +60,7 @@ class Data:
         variables = set()
         for sample in self._list:
             variables = variables.intersection(sample._data.columns)
+        variables.remove("Time")
         return variables
 
     def project(self, variables):
@@ -69,7 +69,8 @@ class Data:
         :param variables: Variables to project.
         :return: A new dataset that contains only selected variables.
         """
-        return Data([sample.project(variables) for sample in self._list], variables_annotation=self._variables_annotation)
+        return Data([sample.project(variables) for sample in self._list],
+                    variables_annotation=self._variables_annotation)
 
     def dynamic_variables(self):
         """
@@ -78,6 +79,38 @@ class Data:
         """
         return [sample.get_data() for sample in self._list]
 
+    def flattern(self):
+        """
+        Returns a data frame with dynamic variables stored in a single data frame for all samples. This is useful especially when learning the prior distribution of a DBN.
+        :return: Pandas data frame with all common dynamic variables.
+        """
+        variables = self.get_common_dynamic_variables()
+        df = pd.DataFrame(columns=variables)
+        for sample in self._list:
+            df = df.append(sample.get_data())
+        return df
+
+    def get_common_static_variables(self):
+        variables = set()
+        for sample in self._list:
+            variables = variables.intersection(sample.get_static_variables().keys())
+        if "Time" in variables:
+            variables.remove("Time")
+        return variables
+
+    def variables_for_annotation(self, annotation):
+        variables = set()
+        for variable, annotations in self._variables_annotation.items():
+            if annotation in annotations:
+                variables.add(variable)
+        return variables
+
+    def static_data_as_df(self):
+        variables = self.get_common_static_variables()
+        df = pd.DataFrame(columns=list(variables))
+        for sample in self._list:
+            df = df._append(sample.get_static_variables(), ignore_index=True)
+        return df
 
     def __iter__(self):
         """
@@ -87,4 +120,3 @@ class Data:
         iterator: Iterator over the list of samples.
         """
         return iter(self._list)
-

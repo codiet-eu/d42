@@ -1,24 +1,22 @@
-from abc import ABC, abstractmethod
 from pgmpy.models import BayesianModel
-from pgmpy.estimators import BayesianEstimator
-from PGM import PGM
+from codietpgm.learners.BayesianNetworkLearner import BayesianNetworkLearner
 from pgmpy.inference import VariableElimination
 from pgmpy.estimators import HillClimbSearch
 from pgmpy.estimators import BicScore
 from pgmpy.sampling import GibbsSampling
 
 
-class BayesianNetwork(PGM):
+class PgmpyBN(BayesianNetworkLearner):
     """Class for Probabilistic Graphical Models using Bayesian networks."""
 
-    def __init__(self, structure_and_weights=False):
+    def __init__(self):
         """
         Creates a new instance of the Bayesian Network class.
 
         Parameters:
         structure_and_weights (bool): Indicates that the model is capable of learning the structure and weights together.
         """
-        super().__init__(structure_and_weights)
+        super().__init__(False)
         self._model = BayesianModel()
 
     def inference(self, query_variables):
@@ -32,7 +30,7 @@ class BayesianNetwork(PGM):
         sampler = GibbsSampling(self._model)
         samples = sampler.sample(size=num_samples)
         return samples
-    
+
     def learn_structure(self, data):
         super().learn_structure()
         hc = HillClimbSearch(data, scoring_method=BicScore(data))
