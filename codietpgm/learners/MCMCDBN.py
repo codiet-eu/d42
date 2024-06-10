@@ -1,9 +1,9 @@
-from DBNLearner import DynamicBayesianNetwork
+from DBNLearner import DBNLearner
 from codietpgm.utils.runR import run_R
 from codietpgm.utils.convert import m2graph
 
 
-class MCMCDBN(DynamicBayesianNetwork):
+class MCMCDBN(DBNLearner):
     def __init__(self, args):
         super().__init__(False)
         self._model = None
