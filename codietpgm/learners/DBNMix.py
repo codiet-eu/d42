@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class DBNMix:
     def __init__(self, dbn_instances):
         self.dbn_instances = dbn_instances

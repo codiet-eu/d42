@@ -1,4 +1,8 @@
-class DBNBayes:
+from abc import ABC
+from codietpgm.learners.DBNLearner import DBNLearner
+
+
+class DBNBayes(ABC, DBNLearner):
     def __init__(self, dbn):
         self.dbn = dbn
 

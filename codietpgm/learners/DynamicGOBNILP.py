@@ -1,4 +1,4 @@
-from codietpgm.models.DynamicBayesianNetwork import DynamicBayesianNetwork
+from codietpgm.learners.DBNLearner import DBNLearner
 
 from pygobnilp import Gobnilp
 

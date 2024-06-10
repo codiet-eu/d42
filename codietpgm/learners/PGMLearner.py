@@ -1,13 +1,9 @@
-# Add comments and discussion
-
-
 from abc import ABC, abstractmethod
-import numpy as np
 
-class PGM(ABC):
-    """Abstract base class for Probabilistic Graphical Models."""
 
-    def __init__(self, sizen, structure_and_weights=False):
+class PGMLearner(ABC):
+    """Abstract base class for Probabilistic Graphical Models learners."""
+    def __init__(self, structure_and_weights=False):
         """
         Creates a new instance of the PGM class.
 
@@ -17,9 +13,7 @@ class PGM(ABC):
         self.__structure_and_weights = structure_and_weights
         self.__fully_learned = False
         self.__structure_learned = False
-        self.__size = sizen #number of variables
-        
-             
+
     def inference(self, query_variables):
         """Perform inference on the given query variables."""
         if not self.__fully_learned:
@@ -42,5 +36,3 @@ class PGM(ABC):
             self.learn_weights(data)
 
         self.__structure_learned = True
-        
-        

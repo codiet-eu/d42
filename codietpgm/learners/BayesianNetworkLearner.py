@@ -1,8 +1,8 @@
 from abc import ABC
-from codietpgm.PGM import PGM
+from codietpgm.learners.PGMLearner import PGMLearner
 
 
-class BayesianNetwork(PGM, ABC):
+class BayesianNetworkLearner(PGMLearner, ABC):
     """Abstract class for Bayesian networks (BNs)."""
 
     def __init__(self, structure_and_weights=False):

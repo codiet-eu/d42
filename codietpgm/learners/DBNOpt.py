@@ -1,4 +1,8 @@
-class DBNOpt:
+from abc import ABC
+from codietpgm.learners.DBNLearner import DBNLearner
+
+
+class DBNOpt(ABC, DBNLearner):
     def __init__(self, dbn):
         self.dbn = dbn
 
