@@ -9,6 +9,7 @@ class Node:
         self.observed = observed
         self.dynamic = dynamic
 
+
 class Edge:
     def __init__(self, from_node, to_node):
         self.from_node = from_node

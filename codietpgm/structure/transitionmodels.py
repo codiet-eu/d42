@@ -1,6 +1,8 @@
+from abc import ABC, abstractmethod
 import numpy as np
 import statsmodels.api as sm
 from itertools import combinations
+
 
 class StatisticalModel(ABC):
     def __init__(self, input_nodes=None, output_node=None):
@@ -44,7 +46,6 @@ class StatisticalModel(ABC):
             pass
 
 
-
 class GaussianModel(StatisticalModel):
     def init_params(self):
         self.current_params = {node.name: self.np.random.normal(0, 1) for node in self.input_nodes}
@@ -59,7 +60,6 @@ class GaussianModel(StatisticalModel):
                     for param in self.model.current_params}
 
 
-
 class LinearBinaryModel(StatisticalModel):
     def init_params(self):
         self.current_params = {node.name: np.random.lognormal(0, 1) for node in self.input_nodes}
@@ -68,6 +68,7 @@ class LinearBinaryModel(StatisticalModel):
         linear_combination = np.dot(input_values, [self.current_params[node.name] for node in self.input_nodes])
         probability = 1 / (1 + np.exp(-linear_combination))
         return np.random.binomial(1, probability, len(input_values))
+
 
 class CPDBinaryModel(StatisticalModel):
     def init_params(self):
@@ -82,6 +83,7 @@ class CPDBinaryModel(StatisticalModel):
         linear_sum = sum(self.current_params[comb] * np.prod([value_dict[n] for n in comb]) for comb in self.current_params)
         probability = 1 / (1 + np.exp(-(intercept + linear_sum)))
         return np.random.binomial(1, probability, 1)
+
 
 class GeneralizedLinearModel(StatisticalModel):
     def __init__(self, family, link, input_nodes=None, output_node=None):
@@ -99,6 +101,7 @@ class GeneralizedLinearModel(StatisticalModel):
     def evaluate(self, input_values):
         return self.model.predict(input_values)
 
+
 class LinearStructuralEquationModel(StatisticalModel):
     def init_params(self):
         self.current_params = {node.name: np.random.normal(0, 1) for node in self.input_nodes}
@@ -107,10 +110,15 @@ class LinearStructuralEquationModel(StatisticalModel):
         result = np.dot([self.current_params[node.name] for node in self.input_nodes], input_values)
         return result
 
+
 class CustomModel(StatisticalModel):
+
     def __init__(self, input_nodes=None, output_node=None, custom_function=None):
         super().__init__(input_nodes, output_node)
         self.custom_function = custom_function
+
+    def init_params(self):
+        pass
 
     def set_custom_function(self, function):
         self.custom_function = function
@@ -119,6 +127,7 @@ class CustomModel(StatisticalModel):
         if self.custom_function:
             return self.custom_function(input_values)
         raise ValueError("No custom function has been set for evaluation.")
+
 
 class Transition:
     def __init__(self, model, input_nodes):
