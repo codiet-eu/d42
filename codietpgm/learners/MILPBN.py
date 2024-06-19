@@ -4,7 +4,7 @@ import gurobipy as gp
 from gurobipy import GRB
 
 
-class ILPBN(BayesianNetwork):
+class ILPBN(BayesianNetworkLearner):
     """
     See : https://www.jmlr.org/papers/volume24/20-536/20-536.pdf
     """
