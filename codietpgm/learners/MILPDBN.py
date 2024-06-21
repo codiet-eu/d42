@@ -4,7 +4,7 @@ import gurobipy as gp
 from gurobipy import GRB
 
 
-class MILPBN(BayesianNetworkLearner):
+class MILPDBN(BayesianNetworkLearner):
     """
     New method proposed in the draft.
     """
@@ -39,6 +39,9 @@ class MILPBN(BayesianNetworkLearner):
         ap = model.addMVar((d, d), lb=b_a, vtype=GRB.CONTINUOUS, name="A+")
         am = model.addMVar((d, d), ub=-b_a, vtype=GRB.CONTINUOUS, name="A-")
 
+        # layer variables
+        layer = model.addMVar(d, lb=1.0, ub=d, vtype=GRB.CONTINUOUS, name="layer")
+
         # helper variables, so that the contraint is quadratic
         hwp = model.addMVar((d, d), vtype=GRB.CONTINUOUS, name="helpwerW+")
         hwm = model.addMVar((d, d), vtype=GRB.CONTINUOUS, name="helpwerW-")
@@ -58,7 +61,8 @@ class MILPBN(BayesianNetworkLearner):
         model.addConstrs((ap[j, k] * (1 - eap[j, k]) == 0 for j in range(d) for k in range(d)), name="A+ (1-E_A+) = 0")
         model.addConstrs((am[j, k] * (1 - eam[j, k]) == 0 for j in range(d) for k in range(d)), name="A- (1-E_A-) = 0")
 
-        # todo DAG constraints
+        # DAG constraints
+        model.addConstrs((1 - d + d * (ewp[j, k] + ewm[j, k]) <= layer[k] - layer[j] for j in range(d) for k in range(d)), name="DAG layer constraint")
 
         # helper variables constraints
         model.addConstrs((ewp[j, k] * wp[j, k] == hwp[j, k] for j in range(d) for k in range(d)),
@@ -74,29 +78,35 @@ class MILPBN(BayesianNetworkLearner):
         model.addConstrs((critvar[m, t, i] == x[m][t, i]
                           - sum(x[m][t, j] * hwp[j, i] for j in range(d))
                           - sum(x[m][t, j] * hwm[j, i] for j in range(d))
-                          # TODO terms with n? - so far coded as n = d ? Also, t - 1 will cause an error, as this is undefined ...
-                          - sum(x[m][t - 1, j] * hap[j, i] for j in range(d))
-                          - sum(x[m][t - 1, j] * ham[j, i] for j in range(d))
-                                           for m in range(M) for t in range(T) for i in range(d)), name="criterion helper variable")
+                          - (0 if t is 0 else sum(x[m][t - 1, j] * hap[j, i] for j in range(d)))
+                          - (0 if t is 0 else sum(x[m][t - 1, j] * ham[j, i] for j in range(d)))
+                          for m in range(M) for t in range(T) for i in range(d)),
+                         name="criterion helper variable")
 
 
         # define the objective function
         model.setObjective(
             sum((critvar[m, t, i] * critvar[m, t, i]) for m in range(M) for t in range(T) for i in range(d)) +
-                # regularization
-                lambda_wp * ewp.sum() + lamda_wm * ewm.sum() + lamda_ap * eap.sum() + lamda_am * eam.sum()
+            # regularization
+            lambda_wp * ewp.sum() + lamda_wm * ewm.sum() + lamda_ap * eap.sum() + lamda_am * eam.sum()
             ,
             GRB.MINIMIZE)
 
         model.optimize()
 
         self._model = model
-        self.variables = df.keys()
+        self.variables = df[0].keys()
+
+        self.eap = eap
+        self.eam = eam
+        self.ewp = ewp
+        self.ewm = ewm
 
     def get_edges(self):
         edge_list = set()
+        print(self.ewp)
         for i in range(len(self.variables)):
             for j in range(len(self.variables)):
-                if int(self.adjacency[i, j].item().X) == 1:  # TODO maybe a better conversion will be needed ...
+                if int(self.ewp[i, j].item().X) or int(self.ewm[i, j].item().X) == 1:  # TODO maybe a better conversion will be needed ...
                     edge_list.add((self.variables[i], self.variables[j]))
         return edge_list
