@@ -15,8 +15,16 @@ class MILPDBN(BayesianNetworkLearner):
         self._model = None
         self.adjacency = None
 
-    def learn_weights(self, data, lambda_wp=0.5, lamda_wm=0.5, lamda_ap=0.5, lamda_am=0.5, b_w=0.1, b_a=0.1):
+    def learn_weights(self, data, lambda_wp=0.5, lamda_wm=0.5, lambda_ap=0.5, lamda_am=0.5, b_w=0.1, b_a=0.1, p=1):
         super().learn_weights(data)
+
+        if lamda_am < 0 or lambda_ap < 0 or lambda_wp < 0 or lambda_wp < 0:
+            raise ValueError("Regularization parameters lambda_AW+- need to be positive.")
+        if b_w < 0 or b_a < 0:
+            raise ValueError("Bounds b_W and b_A need to be positive.")
+
+        if p is not 1:
+            raise RuntimeError("p > 1 not yet implemented")
 
         # make sure we have dataframe with only continous static features
         data = data.project(data.variables_for_annotation(Type.CONTINUOUS))
@@ -34,10 +42,10 @@ class MILPDBN(BayesianNetworkLearner):
         ewm = model.addMVar((d, d), vtype=GRB.BINARY, name="EW-")
         eap = model.addMVar((d, d), vtype=GRB.BINARY, name="EA+")
         eam = model.addMVar((d, d), vtype=GRB.BINARY, name="EA-")
-        wp = model.addMVar((d, d), lb=b_w, vtype=GRB.CONTINUOUS, name="W+")
-        wm = model.addMVar((d, d), ub=-b_w, vtype=GRB.CONTINUOUS, name="W-")
-        ap = model.addMVar((d, d), lb=b_a, vtype=GRB.CONTINUOUS, name="A+")
-        am = model.addMVar((d, d), ub=-b_a, vtype=GRB.CONTINUOUS, name="A-")
+        wp = model.addMVar((d, d), lb=b_w, ub=GRB.INFINITY, vtype=GRB.CONTINUOUS, name="W+")
+        wm = model.addMVar((d, d), lb=-GRB.INFINITY, ub=-b_w, vtype=GRB.CONTINUOUS, name="W-")
+        ap = model.addMVar((d, d), lb=b_a, ub=GRB.INFINITY, vtype=GRB.CONTINUOUS, name="A+")
+        am = model.addMVar((d, d), lb=-GRB.INFINITY, ub=-b_a, vtype=GRB.CONTINUOUS, name="A-")
 
         # layer variables
         layer = model.addMVar(d, lb=1.0, ub=d, vtype=GRB.CONTINUOUS, name="layer")
@@ -55,11 +63,6 @@ class MILPDBN(BayesianNetworkLearner):
         # E_W+ + E_W- <= 1, and E_A+ + E_A- <= 1
         model.addConstrs((ewp[j, k] + ewm[j, k] <= 1 for j in range(d) for k in range(d)), name="E_W+ + E_W- <= 1")
         model.addConstrs((eap[j, k] + eam[j, k] <= 1 for j in range(d) for k in range(d)), name="E_A+ + E_A- <= 1")
-
-        model.addConstrs((wp[j, k] * (1 - ewp[j, k]) == 0 for j in range(d) for k in range(d)), name="W+ (1-E_W+) = 0")
-        model.addConstrs((wm[j, k] * (1 - ewm[j, k]) == 0 for j in range(d) for k in range(d)), name="W- (1-E_W-) = 0")
-        model.addConstrs((ap[j, k] * (1 - eap[j, k]) == 0 for j in range(d) for k in range(d)), name="A+ (1-E_A+) = 0")
-        model.addConstrs((am[j, k] * (1 - eam[j, k]) == 0 for j in range(d) for k in range(d)), name="A- (1-E_A-) = 0")
 
         # DAG constraints
         model.addConstrs((1 - d + d * (ewp[j, k] + ewm[j, k]) <= layer[k] - layer[j] for j in range(d) for k in range(d)), name="DAG layer constraint")
@@ -88,7 +91,7 @@ class MILPDBN(BayesianNetworkLearner):
         model.setObjective(
             sum((critvar[m, t, i] * critvar[m, t, i]) for m in range(M) for t in range(T) for i in range(d)) +
             # regularization
-            lambda_wp * ewp.sum() + lamda_wm * ewm.sum() + lamda_ap * eap.sum() + lamda_am * eam.sum()
+            lambda_wp * ewp.sum() + lamda_wm * ewm.sum() + lambda_ap * eap.sum() + lamda_am * eam.sum()
             ,
             GRB.MINIMIZE)
 
