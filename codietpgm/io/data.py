@@ -120,3 +120,8 @@ class Data:
         iterator: Iterator over the list of samples.
         """
         return iter(self._list)
+
+    def __str__(self):
+        return [str(data) for data in self._list].__str__()
+
+

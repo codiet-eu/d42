@@ -2,6 +2,7 @@ from codietpgm.learners.BayesianNetworkLearner import BayesianNetworkLearner
 from codietpgm.io.variableannotation import Type
 import gurobipy as gp
 from gurobipy import GRB
+import numpy as np
 
 
 class MILPDBN(BayesianNetworkLearner):
@@ -23,7 +24,7 @@ class MILPDBN(BayesianNetworkLearner):
         if b_w < 0 or b_a < 0:
             raise ValueError("Bounds b_W and b_A need to be positive.")
 
-        if p is not 1:
+        if p != 1:
             raise RuntimeError("p > 1 not yet implemented")
 
         # make sure we have dataframe with only continous static features
@@ -48,7 +49,7 @@ class MILPDBN(BayesianNetworkLearner):
         am = model.addMVar((d, d), lb=-GRB.INFINITY, ub=-b_a, vtype=GRB.CONTINUOUS, name="A-")
 
         # layer variables
-        layer = model.addMVar(d, lb=1.0, ub=d, vtype=GRB.CONTINUOUS, name="layer")
+        layer = model.addMVar(d, lb=1, ub=d, vtype=GRB.CONTINUOUS, name="layer")
 
         # helper variables, so that the contraint is quadratic
         hwp = model.addMVar((d, d), vtype=GRB.CONTINUOUS, name="helpwerW+")
@@ -65,7 +66,10 @@ class MILPDBN(BayesianNetworkLearner):
         model.addConstrs((eap[j, k] + eam[j, k] <= 1 for j in range(d) for k in range(d)), name="E_A+ + E_A- <= 1")
 
         # DAG constraints
-        model.addConstrs((1 - d + d * (ewp[j, k] + ewm[j, k]) <= layer[k] - layer[j] for j in range(d) for k in range(d)), name="DAG layer constraint")
+        #TODO 1 is nice theory, but this is infeasible too often ...
+        model.addConstrs(((0 if j == k else
+                           1 - d + d * (ewp[j, k] + ewm[j, k])) <= layer[k] - layer[j]
+                          for j in range(d) for k in range(d)), name="DAG layer constraint")
 
         # helper variables constraints
         model.addConstrs((ewp[j, k] * wp[j, k] == hwp[j, k] for j in range(d) for k in range(d)),
@@ -81,8 +85,8 @@ class MILPDBN(BayesianNetworkLearner):
         model.addConstrs((critvar[m, t, i] == x[m][t, i]
                           - sum(x[m][t, j] * hwp[j, i] for j in range(d))
                           - sum(x[m][t, j] * hwm[j, i] for j in range(d))
-                          - (0 if t is 0 else sum(x[m][t - 1, j] * hap[j, i] for j in range(d)))
-                          - (0 if t is 0 else sum(x[m][t - 1, j] * ham[j, i] for j in range(d)))
+                          - (0 if t == 0 else sum(x[m][t - 1, j] * hap[j, i] for j in range(d)))
+                          - (0 if t == 0 else sum(x[m][t - 1, j] * ham[j, i] for j in range(d)))
                           for m in range(M) for t in range(T) for i in range(d)),
                          name="criterion helper variable")
 
@@ -100,16 +104,35 @@ class MILPDBN(BayesianNetworkLearner):
         self._model = model
         self.variables = df[0].keys()
 
-        self.eap = eap
+        self.eap = eap #TODO hold structure?
         self.eam = eam
         self.ewp = ewp
         self.ewm = ewm
 
+        self.wp = wp
+        self.wm = wm
+        self.ap = ap
+        self.am = am
+
     def get_edges(self):
         edge_list = set()
-        print(self.ewp)
         for i in range(len(self.variables)):
             for j in range(len(self.variables)):
                 if int(self.ewp[i, j].item().X) or int(self.ewm[i, j].item().X) == 1:  # TODO maybe a better conversion will be needed ...
                     edge_list.add((self.variables[i], self.variables[j]))
         return edge_list
+
+    def get_A_adajcency(self):
+        adj = np.zeros((len(self.variables), len(self.variables)))
+        print(self.eap)
+        print(self.ap)
+        print(self.eam)
+        print(self.am)
+        if self._model.status is GRB.OPTIMAL:
+            for i in range(len(self.variables)):
+                for j in range(len(self.variables)):
+                    adj[i, j] = self.eap[i, j].item().X * self.ap[i, j].item().X + self.eam[i, j].item().X * self.am[i, j].item().X
+        else:
+            #TODO throw an error?
+            print("NOT OPTIMAL!")
+        return adj

@@ -80,3 +80,7 @@ class Sample:
         """
         return Sample(self._data[list(variables.intersection(self._data.keys()))],
                       {key: self._static_variables[key] for key in variables if key in self._static_variables})
+
+    def __str__(self):
+        return str(self._data)
+
