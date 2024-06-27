@@ -1,0 +1,7 @@
+pandas~=2.2.1
+setuptools~=70.0.0
+numpy~=1.26.4
+networkx~=3.3
+gurobipy~=11.0.2
+pgmpy~=0.1.25
+statsmodels~=0.14.1
