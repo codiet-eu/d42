@@ -3,7 +3,7 @@ from codietpgm.learners.DBNLearner import DBNLearner
 from pygobnilp import Gobnilp
 
 
-class DynamicGOBNILP(DynamicBayesianNetwork):
+class DynamicGOBNILP(DBNLearner):
     """Class for Probabilistic Graphical Models using GOBNILP generalized to DBNs."""
 
     def __init__(self):

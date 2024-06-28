@@ -3,13 +3,27 @@ import numpy as np
 import statsmodels.api as sm
 from itertools import combinations
 
+"""
+This file contains a set of models of individual transitions.
+"""
+
 
 class StatisticalModel(ABC):
-    def __init__(self, input_nodes=None, output_node=None):
+    """
+    Base class for a transition. A statistical model represents a connection between one or more input nodes that have
+    influence on a single output node.
+    """
+
+    def __init__(self, output_node, input_nodes=None):
+        """
+        Creates new model for a transition.
+        :param output_node: The output variable node. #TODO what actually should this be? Node in a graph, variable name?
+        :param input_nodes: The input variable node.
+        """
         self.input_nodes = input_nodes if input_nodes else []
         self.output_node = output_node
         self.current_params = {}
-        self.sampler = self.Sampler(self)
+        self.sampler = self.Sampler(self) #TODO inner class should have access to outer class in Python, no need for self, right?
 
     def update_params(self, new_params):
         self.current_params = new_params
@@ -47,6 +61,7 @@ class StatisticalModel(ABC):
 
 
 class GaussianModel(StatisticalModel):
+    # TODO constructors!
     def init_params(self):
         self.current_params = {node.name: self.np.random.normal(0, 1) for node in self.input_nodes}
 
@@ -61,6 +76,7 @@ class GaussianModel(StatisticalModel):
 
 
 class LinearBinaryModel(StatisticalModel):
+    # TODO constructors!
     def init_params(self):
         self.current_params = {node.name: np.random.lognormal(0, 1) for node in self.input_nodes}
 
@@ -71,21 +87,25 @@ class LinearBinaryModel(StatisticalModel):
 
 
 class CPDBinaryModel(StatisticalModel):
+    # TODO constructors!
     def init_params(self):
         self.current_params = {}
-        all_combinations = sum([list(combinations([node.name for node in self.input_nodes], i)) for i in range(1, len(self.input_nodes) + 1)], [])
+        all_combinations = sum([list(combinations([node.name for node in self.input_nodes], i)) for i in
+                                range(1, len(self.input_nodes) + 1)], [])
         for combination in all_combinations:
             self.current_params[combination] = np.random.uniform(-1, 1)
 
     def evaluate(self, input_values):
         value_dict = {node.name: val for node, val in zip(self.input_nodes, input_values)}
         intercept = self.current_params.get(tuple(), 0)
-        linear_sum = sum(self.current_params[comb] * np.prod([value_dict[n] for n in comb]) for comb in self.current_params)
+        linear_sum = sum(
+            self.current_params[comb] * np.prod([value_dict[n] for n in comb]) for comb in self.current_params)
         probability = 1 / (1 + np.exp(-(intercept + linear_sum)))
         return np.random.binomial(1, probability, 1)
 
 
 class GeneralizedLinearModel(StatisticalModel):
+    # TODO constructors!, fix output node to make mandatory
     def __init__(self, family, link, input_nodes=None, output_node=None):
         super().__init__(input_nodes, output_node)
         self.family = family
@@ -143,6 +163,3 @@ class Transition:
 
     def evaluate(self, data):
         return self.model.evaluate(data)
-
-
-

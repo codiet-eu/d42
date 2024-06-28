@@ -1,6 +1,3 @@
-from types import MappingProxyType
-
-
 class Sample:
     """
     Class to hold static variables for input to a Probabilistic Graphical Model,
@@ -16,7 +13,7 @@ class Sample:
                              Columns: 'time', 'variable1', 'variable2', ...
         static_variables (dict): Dictionary containing static variables for PGM input.
         """
-        self._data = MappingProxyType(data)
+        self._data = data
         self._static_variables = static_variables
 
         # Make the class immutable by preventing attribute modification after initialization
@@ -83,3 +80,6 @@ class Sample:
         """
         return Sample(self._data[list(variables.intersection(self._data.keys()))],
                       {key: self._static_variables[key] for key in variables if key in self._static_variables})
+
+    def __str__(self):
+        return str(self._data)
