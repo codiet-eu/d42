@@ -33,7 +33,7 @@ class TestMILPDBN(unittest.TestCase):
             self.data = Data(samples, variables_annotation={v: {Type.CONTINUOUS} for v in variables})
 
             model = MILPDBN()
-            model.learn_weights(self.data, lambda_wp=0.0005, lamda_wm=0.0005, lambda_ap=0.0000005, lamda_am=0.00000005, b_w=0.001, b_a=0.001)
+            model.learn_weights(self.data, lambda_wp=0.05, lamda_wm=0.05, lambda_ap=0.05, lamda_am=0.05, b_w=0.1, b_a=0.1)
 
             matrix = model.get_A_adajcency()
             print(matrix)
@@ -44,9 +44,16 @@ class TestMILPDBN(unittest.TestCase):
                 start_col = (t+1) * n
                 repeated_matrix[start_row:(start_row + matrix.shape[0]), start_col:(start_col + matrix.shape[1])] = matrix
 
+            matrix = model.get_W_adajcency()
+            print(matrix)
+            for t in range(ts):
+                start_row_col = t * n
+                repeated_matrix[start_row_col:(start_row_col + matrix.shape[0]), start_row_col:(start_row_col + matrix.shape[1])] = matrix
+
             print("Time : " + str(time.time() - start))
 
             df = pd.DataFrame(repeated_matrix)
+            df = df.astype(bool).astype(int)
             df.index = range(len(df))
             df.columns = range(len(df.columns))
             df.to_csv("MILPDBN_adj_"+datasetname+".csv", index_label="")
