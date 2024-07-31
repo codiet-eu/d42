@@ -3,6 +3,8 @@ from codietpgm.io.variableannotation import Type
 import gurobipy as gp
 from gurobipy import GRB
 
+from codietpgm.structure.BayesianNetwork import BayesianNetwork
+
 
 class ILPBN(BayesianNetworkLearner):
     """
@@ -50,6 +52,9 @@ class ILPBN(BayesianNetworkLearner):
         self._model = model
         self.variables = df.keys()
         self.adjacency = g
+
+        bn = BayesianNetwork()
+
 
     def get_edges(self):
         edge_list = set()

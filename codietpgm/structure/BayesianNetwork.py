@@ -35,7 +35,7 @@ class BayesianNetwork(ProbabilisticGraphicalModel):
                 data = [n.value for n in transition.input_nodes]
                 new_values[node_name] = transition.evaluate(data)
 
-    def update_structure(self, new_graph_t, new_graph_t_minus_one):
+    def update_structure(self, new_graph_t):
         self._graph_t = new_graph_t
         self.update_transitions()
 
