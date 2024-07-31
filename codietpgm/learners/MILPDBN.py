@@ -20,7 +20,7 @@ class MILPDBN(BayesianNetworkLearner):
         super().learn_weights(data)
 
         if lamda_am < 0 or lambda_ap < 0 or lambda_wp < 0 or lambda_wp < 0:
-            raise ValueError("Regularization parameters lambda_AW+- need to be positive.")
+            raise ValueError("Regularization parameters lambda_AW+- need to be non-negative.")
         if b_w < 0 or b_a < 0:
             raise ValueError("Bounds b_W and b_A need to be positive.")
 

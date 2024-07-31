@@ -15,8 +15,11 @@ class ILPBN(BayesianNetworkLearner):
         self._model = None
         self.adjacency = None
 
-    def learn_weights(self, data, lambda_n=0.5):
+    def learn_weights(self, data, lambda_n=0.5, eps = 1e-6):
         super().learn_weights(data)
+
+        if lambda_n < 0:
+            raise ValueError("Regularization parameters lambda_AW+- need to be non-negative.")
 
         # make sure we have dataframe with only continous static features
         data = data.project(data.variables_for_annotation(Type.CONTINUOUS))
@@ -29,9 +32,9 @@ class ILPBN(BayesianNetworkLearner):
         model = gp.Model("ILPBN")
 
         # include variables
-        beta = model.addMVar((m, m), vtype=GRB.CONTINUOUS, name="beta")
+        beta = model.addMVar((m, m), lb=-GRB.INFINITY, ub=GRB.INFINITY, vtype=GRB.CONTINUOUS, name="beta")
         g = model.addMVar((m, m), vtype=GRB.BINARY, name="g")
-        layer = model.addMVar(m, lb=1.0, ub=m, vtype=GRB.CONTINUOUS, name="layer")
+        layer = model.addMVar(m, lb=1.0 - eps, ub=m + eps, vtype=GRB.CONTINUOUS, name="layer")
 
         # Add the constraints
         model.addConstrs((1 - m + m * g[j, k] <= layer[k] - layer[j] for j in range(m) for k in range(m)), name="(14a)")
