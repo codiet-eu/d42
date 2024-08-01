@@ -3,6 +3,7 @@ from codietpgm.io.variableannotation import Type
 import gurobipy as gp
 from gurobipy import GRB
 import numpy as np
+import networkx as nx
 
 
 class MILPDBN(BayesianNetworkLearner):
@@ -101,55 +102,39 @@ class MILPDBN(BayesianNetworkLearner):
 
         model.optimize()
 
-        self._model = model
-        self.variables = df[0].keys()
+        if model.status is not GRB.OPTIMAL:
+            except("Model is not optimal, should have been. This is likely an error in the MILP.")
 
-        self.eap = eap #TODO hold structure?
-        self.eam = eam
-        self.ewp = ewp
-        self.ewm = ewm
+        variables = df[0].keys()
 
-        self.wp = wp
-        self.wm = wm
-        self.ap = ap
-        self.am = am
+        graph_prior = nx.DiGraph() # W is prior
+        graph_prior.add_nodes_from(variables)
+        graph_prior.add_weighted_edges_from(self._get_W_edges(ewp, wp, ewm, wm, model, variables))
 
-    def get_edges(self):
+        graph_slices = nx.DiGraph() # a is temporal
+        graph_slices.add_nodes_from([variable + "_lag0" for variable in variables])
+        graph_slices.add_weighted_edges_from(self._get_A_edges(eap, ap, eam, am, model, variables))
+
+        return graph_prior, graph_prior
+
+
+    def _get_A_edges(self, eap, ap, eam, am, model, variables):
         edge_list = set()
-        for i in range(len(self.variables)):
-            for j in range(len(self.variables)):
-                if int(self.ewp[i, j].item().X) or int(self.ewm[i, j].item().X) == 1:  # TODO maybe a better conversion will be needed ...
-                    edge_list.add((self.variables[i], self.variables[j]))
+
+        for i in range(len(variables)):
+            for j in range(len(variables)):
+                if int(self.ewp[i, j].item().X) == 1 or int(self.ewm[i, j].item().X) == 1:
+                    edge_list.add(variables[i] + "_lag0", variables[j] + "lag_1",
+                                  eap[i, j].item().X * ap[i, j].item().X + eam[i, j].item().X * am[i, j].item().X)
         return edge_list
 
-    def get_A_adajcency(self):
-        adj = np.zeros((len(self.variables), len(self.variables)))
-        print(self.eap)
-        print(self.ap)
-        print(self.eam)
-        print(self.am)
+    def _get_W_edges(self, ewp, wp, ewm, wm, model, variables):
+        # TODO bit of copy-paste (diff is in the varialbes) could it be done better
+        edge_list = set()
 
-        if self._model.status is GRB.OPTIMAL:
-            for i in range(len(self.variables)):
-                for j in range(len(self.variables)):
-                    adj[i, j] = self.eap[i, j].item().X * self.ap[i, j].item().X + self.eam[i, j].item().X * self.am[i, j].item().X
-        else:
-            #TODO throw an error?
-            print("NOT OPTIMAL!")
-        return adj
-
-    def get_W_adajcency(self):
-        adj = np.zeros((len(self.variables), len(self.variables)))
-        print(self.ewp)
-        print(self.wp)
-        print(self.ewm)
-        print(self.wm)
-
-        if self._model.status is GRB.OPTIMAL:
-            for i in range(len(self.variables)):
-                for j in range(len(self.variables)):
-                    adj[i, j] = self.ewp[i, j].item().X * self.wp[i, j].item().X + self.ewm[i, j].item().X * self.wm[i, j].item().X
-        else:
-            # TODO throw an error?
-            print("NOT OPTIMAL!")
-        return adj
+        for i in range(len(self.variables)):
+            for j in range(len(self.variables)):
+                if int(self.ewp[i, j].item().X) == 1 or int(self.ewm[i, j].item().X) == 1:
+                    edge_list.add(variables[i], variables[j],
+                                  ewp[i, j].item().X * wp[i, j].item().X + ewm[i, j].item().X * wm[i, j].item().X)
+        return edge_list

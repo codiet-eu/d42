@@ -15,10 +15,9 @@ class BayesianNetwork(ProbabilisticGraphicalModel):
 
     def initialize_transitions(self, models):
         for node in self._nodes.values():
-            if node.dynamic:
-                input_nodes_current = self.determine_input_nodes(node, self._graph_t)
-                model = self.choose_model(node, input_nodes_current, models)
-                self._transitions[node.name] = Transition(model, input_nodes_current)
+            input_nodes_current = self.determine_input_nodes(node, self._graph_t)
+            model = self.choose_model(node, input_nodes_current, models)
+            self._transitions[node.name] = Transition(model, input_nodes_current)
 
     def determine_input_nodes(self, node, graph):
         return [self._nodes.get(n) for n in graph.predecessors(node.name)]
@@ -41,7 +40,6 @@ class BayesianNetwork(ProbabilisticGraphicalModel):
 
     def update_transitions(self):
         for node in self._nodes.values():
-            if node.dynamic:
-                self.initialize_transitions(None)
+            self.initialize_transitions(None)
 
 

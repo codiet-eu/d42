@@ -6,6 +6,10 @@ class Evaluator(ABC):
     A class intended for evaluation of set of learners. It is presumed that the subclasses will get the data and all
     the settings in the constructor, and then evaluate a set of learners using the abstract methods below.
     """
+
+    def __init__(self, data):
+        self.data = data
+
     def evaluate(self, learners):
         results = []
         for learner in learners:

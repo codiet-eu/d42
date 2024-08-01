@@ -2,11 +2,12 @@ from codietpgm.learners.BayesianNetworkLearner import BayesianNetworkLearner
 from codietpgm.io.variableannotation import Type
 import gurobipy as gp
 from gurobipy import GRB
+import networkx as nx
 
 from codietpgm.structure.BayesianNetwork import BayesianNetwork
 
 
-class ILPBN(BayesianNetworkLearner):
+class MILPBN(BayesianNetworkLearner):
     """
     See : https://www.jmlr.org/papers/volume24/20-536/20-536.pdf
     """
@@ -49,17 +50,18 @@ class ILPBN(BayesianNetworkLearner):
 
         model.optimize()
 
-        self._model = model
-        self.variables = df.keys()
-        self.adjacency = g
+        variables = df.keys()
+        graph = nx.DiGraph()
+        graph.add_nodes_from(variables)
+        graph.add_weighted_edges_from(self._get_edges(g, beta, variables))
 
         bn = BayesianNetwork()
+        return graph  # TODO return bn insttead once working ...
 
-
-    def get_edges(self):
+    def _get_edges(self, g, beta, variables):
         edge_list = set()
-        for i in range(len(self.variables)):
-            for j in range(len(self.variables)):
-                if int(self.adjacency[i, j].item().X) == 1: #TODO maybe a better conversion will be needed ...
-                    edge_list.add((self.variables[i], self.variables[j]))
+        for i in range(len(variables)):
+            for j in range(len(variables)):
+                if int(g[i, j].item().X) == 1:
+                    edge_list.add((variables[i], variables[j], beta[i, j].item().X))
         return edge_list
