@@ -103,7 +103,7 @@ class MILPDBN(BayesianNetworkLearner):
         model.optimize()
 
         if model.status is not GRB.OPTIMAL:
-            except("Model is not optimal, should have been. This is likely an error in the MILP.")
+            raise RuntimeError("Model is not optimal, should have been. This is likely an error in the MILP.")
 
         variables = df[0].keys()
 
