@@ -114,8 +114,8 @@ class GeneralizedLinearModel(StatisticalModel):
 
     def init_params(self):
         # Assuming that self.input_nodes and self.output_node are properly initialized
-        exog = np.column_stack([np.random.normal(size=100) for _ in self.input_nodes])
-        endog = np.random.normal(size=100)
+        exog = np.column_stack([np.random.normal(size=100) for _ in self.input_nodes]) #TODO what is this?
+        endog = np.random.normal(size=100) # TODO this is some leftover - fix
         self.model = sm.GLM(endog, exog, family=self.family(self.link)).fit()
 
     def evaluate(self, input_values):

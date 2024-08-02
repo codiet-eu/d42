@@ -5,6 +5,8 @@ from gurobipy import GRB
 import numpy as np
 import networkx as nx
 
+from codietpgm.structure.DynamicBayesianNetwork import DynamicBayesianNetwork
+
 
 class MILPDBN(BayesianNetworkLearner):
     """
@@ -13,9 +15,6 @@ class MILPDBN(BayesianNetworkLearner):
 
     def __init__(self):
         super().__init__(True)
-        self.variables = None
-        self._model = None
-        self.adjacency = None
 
     def learn_weights(self, data, lambda_wp=0.5, lamda_wm=0.5, lambda_ap=0.5, lamda_am=0.5, b_w=0.1, b_a=0.1, p=1, eps = 1e-6):
         super().learn_weights(data)
@@ -114,6 +113,8 @@ class MILPDBN(BayesianNetworkLearner):
         graph_slices = nx.DiGraph() # a is temporal
         graph_slices.add_nodes_from([variable + "_lag0" for variable in variables])
         graph_slices.add_weighted_edges_from(self._get_A_edges(eap, ap, eam, am, model, variables))
+
+
 
         return graph_prior, graph_prior
 
