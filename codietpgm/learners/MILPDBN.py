@@ -6,6 +6,8 @@ import numpy as np
 import networkx as nx
 
 from codietpgm.structure.DynamicBayesianNetwork import DynamicBayesianNetwork
+from codietpgm.structure.graphcomponents import Node
+from codietpgm.structure.transitionmodels import CustomModel
 
 
 class MILPDBN(BayesianNetworkLearner):
@@ -16,7 +18,8 @@ class MILPDBN(BayesianNetworkLearner):
     def __init__(self):
         super().__init__(True)
 
-    def learn_weights(self, data, lambda_wp=0.5, lamda_wm=0.5, lambda_ap=0.5, lamda_am=0.5, b_w=0.1, b_a=0.1, p=1, eps = 1e-6):
+    def learn_weights(self, data, lambda_wp=0.5, lamda_wm=0.5, lambda_ap=0.5, lamda_am=0.5, b_w=0.1, b_a=0.1, p=1,
+                      eps=1e-6):
         super().learn_weights(data)
 
         if lamda_am < 0 or lambda_ap < 0 or lambda_wp < 0 or lambda_wp < 0:
@@ -58,7 +61,8 @@ class MILPDBN(BayesianNetworkLearner):
         ham = model.addMVar((d, d), lb=-GRB.INFINITY, ub=GRB.INFINITY, vtype=GRB.CONTINUOUS, name="helpwerA-")
 
         # helper variables for the criterion
-        critvar = model.addMVar((M, T, d), lb=-GRB.INFINITY, ub=GRB.INFINITY, vtype=GRB.CONTINUOUS, name="criterion helper variable" )
+        critvar = model.addMVar((M, T, d), lb=-GRB.INFINITY, ub=GRB.INFINITY, vtype=GRB.CONTINUOUS,
+                                name="criterion helper variable")
 
         # constraints
         # E_W+ + E_W- <= 1, and E_A+ + E_A- <= 1
@@ -90,13 +94,11 @@ class MILPDBN(BayesianNetworkLearner):
                           for m in range(M) for t in range(T) for i in range(d)),
                          name="criterion helper variable")
 
-
         # define the objective function
         model.setObjective(
             sum((critvar[m, t, i] * critvar[m, t, i]) for m in range(M) for t in range(T) for i in range(d)) +
             # regularization
-            lambda_wp * ewp.sum() + lamda_wm * ewm.sum() + lambda_ap * eap.sum() + lamda_am * eam.sum()
-            ,
+            lambda_wp * ewp.sum() + lamda_wm * ewm.sum() + lambda_ap * eap.sum() + lamda_am * eam.sum(),
             GRB.MINIMIZE)
 
         model.optimize()
@@ -106,18 +108,20 @@ class MILPDBN(BayesianNetworkLearner):
 
         variables = df[0].keys()
 
-        graph_prior = nx.DiGraph() # W is prior
+        graph_prior = nx.DiGraph()  # W is prior
         graph_prior.add_nodes_from(variables)
         graph_prior.add_weighted_edges_from(self._get_W_edges(ewp, wp, ewm, wm, model, variables))
 
-        graph_slices = nx.DiGraph() # a is temporal
+        graph_slices = nx.DiGraph()  # a is temporal
         graph_slices.add_nodes_from([variable + "_lag0" for variable in variables])
         graph_slices.add_weighted_edges_from(self._get_A_edges(eap, ap, eam, am, model, variables))
 
+        nodes=[Node(name=node_name, dynamic=True, distribution="Linear, gaussian noise",
+               model=CustomModel(input_nodes=graph_prior.predecessors(), custom_function=None)) for node_name in variables] #TODO output node should be the node, but then ... how to encode prior distribution & time slice, giving up on this meess
+        dbn = DynamicBayesianNetwork(nodes=nodes)
+        dbn.update_structure(graph_prior, graph_slices, models=None)
 
-
-        return graph_prior, graph_prior
-
+        return dbn
 
     def _get_A_edges(self, eap, ap, eam, am, model, variables):
         edge_list = set()

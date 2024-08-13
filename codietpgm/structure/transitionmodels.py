@@ -14,7 +14,7 @@ class StatisticalModel(ABC):
     influence on a single output node.
     """
 
-    def __init__(self, output_node, input_nodes=None):
+    def __init__(self, output_node, input_nodes=None, current_params=None, sampler = None):
         """
         Creates new model for a transition.
         :param output_node: The output variable node. #TODO what actually should this be? Node in a graph, variable name?
@@ -22,7 +22,7 @@ class StatisticalModel(ABC):
         """
         self.input_nodes = input_nodes if input_nodes else []
         self.output_node = output_node
-        self.current_params = {}
+        self.current_params = {} if current_params is none else current_params
         self.sampler = self.Sampler(self) #TODO inner class should have access to outer class in Python, no need for self, right?
 
     def update_params(self, new_params):
@@ -61,6 +61,9 @@ class StatisticalModel(ABC):
 
 
 class GaussianModel(StatisticalModel):
+    def __init__(self, output_node, input_nodes=None, current_params=None):
+        self.super().__init__(output_node, input_nodes, current_params)
+
     # TODO constructors!
     def init_params(self):
         self.current_params = {node.name: self.np.random.normal(0, 1) for node in self.input_nodes}

@@ -7,7 +7,8 @@ class Node:
         self._time_index = time_index
         self._model = model
         self._observed = observed
-        #self._dynamic = dynamic
+        self._dynamic = dynamic
+        # TODO node should be hashable with node.name as key, searching using name in dictionaries is unfriendly for the user
 
 
 class Edge:
