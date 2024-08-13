@@ -116,8 +116,9 @@ class MILPDBN(BayesianNetworkLearner):
         graph_slices.add_nodes_from([variable + "_lag0" for variable in variables])
         graph_slices.add_weighted_edges_from(self._get_A_edges(eap, ap, eam, am, model, variables))
 
-        nodes=[Node(name=node_name, dynamic=True, distribution="Linear, gaussian noise",
-               model=CustomModel(input_nodes=graph_prior.predecessors(), custom_function=None)) for node_name in variables] #TODO output node should be the node, but then ... how to encode prior distribution & time slice, giving up on this meess
+        nodes = [Node(name=node_name, dynamic=True, distribution="Linear, gaussian noise",
+                      model=CustomModel(input_nodes=graph_prior.predecessors(), custom_function=None)) for node_name in
+                 variables]  # TODO output node should be the node, but then ... how to encode prior distribution & time slice, giving up on this meess
         dbn = DynamicBayesianNetwork(nodes=nodes)
         dbn.update_structure(graph_prior, graph_slices, models=None)
 

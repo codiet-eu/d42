@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 
+#TODO update this, Slava evidently wants this stateless
 class PGMLearner(ABC):
     """Abstract base class for Probabilistic Graphical Models learners."""
     def __init__(self, structure_and_weights=False):

@@ -1,5 +1,6 @@
 import unittest
 import pandas as pd
+import networkx as nx
 from codietpgm.io.data import Data
 from codietpgm.io.sample import Sample
 from codietpgm.learners.MILPDBN import MILPDBN
@@ -23,8 +24,8 @@ class TestMILPDBN(unittest.TestCase):
 
     def test_learn_weights(self):
         model = MILPDBN()
-        model.learn_weights(self.data)
-        self.assertEqual(model.get_edges(), {("A", "B")})
+        dbn = model.learn_weights(self.data)
+        self.assertEqual(nx.to_numpy_array(dbn.get_graph_t_minus_one(), nodelist=["A", "B"]), {("A", "B")})
 
 
 if __name__ == '__main__':

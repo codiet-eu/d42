@@ -80,5 +80,8 @@ class DynamicBayesianNetwork(ProbabilisticGraphicalModel):
     def get_static_to_dynamic_matrix(self):
         return self._static_to_dynamic_matrix
 
+    def get_nodes(self):
+        return self._nodes
+
 
                 

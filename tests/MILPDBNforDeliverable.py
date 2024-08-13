@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import time
 import numpy as np
+import networkx as nx
 from codietpgm.io.data import Data
 from codietpgm.io.sample import Sample
 from codietpgm.learners.MILPDBN import MILPDBN
@@ -33,9 +34,10 @@ class TestMILPDBN(unittest.TestCase):
             self.data = Data(samples, variables_annotation={v: {Type.CONTINUOUS} for v in variables})
 
             model = MILPDBN()
-            model.learn_weights(self.data, lambda_wp=0.05, lamda_wm=0.05, lambda_ap=0.05, lamda_am=0.05, b_w=0.1, b_a=0.1)
+            dbn = model.learn_weights(self.data, lambda_wp=0.05, lamda_wm=0.05, lambda_ap=0.05, lamda_am=0.05, b_w=0.1, b_a=0.1)
 
-            matrix = model.get_A_adajcency()
+            variables = dbn.get_nodes()
+            matrix = nx.to_numpy_array(dbn.get_graph_t_minus_one(), nodelist=variables)
             print(matrix)
 
             repeated_matrix = np.zeros((n*ts, n*ts))
@@ -44,7 +46,7 @@ class TestMILPDBN(unittest.TestCase):
                 start_col = (t+1) * n
                 repeated_matrix[start_row:(start_row + matrix.shape[0]), start_col:(start_col + matrix.shape[1])] = matrix
 
-            matrix = model.get_W_adajcency()
+            matrix = nx.to_numpy_array(dbn.get_graph_t(), nodelist=variables)
             print(matrix)
             for t in range(ts):
                 start_row_col = t * n
