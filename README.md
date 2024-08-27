@@ -19,6 +19,7 @@ The repository contains several bundles of code. There are structured as follows
 * The `structure` package contains a representation of the learned model. The model
   consists of instances of `Node`, which represent individual variables. Then, each
   node is attached transitions that have a probability distribution over `input_nodes`.
+  See file `makeafewDBNs.py` in `tests` for example of structure creation.
 * In `utils`, you can find helper code. 
 * The `evaluation` folder (under development) will contain tools to compare different
   results obtained by learners.
