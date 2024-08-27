@@ -1,8 +1,5 @@
 from abc import ABC, abstractmethod
 import numpy as np
-import sys 
-import os
-sys.path.append(os.path.relpath("../../"))
 from codietpgm.utils.statstools import Sampler
 
 import statsmodels.api as sm

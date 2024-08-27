@@ -1,9 +1,6 @@
 import random
 import numpy as np
 import networkx as nx
-import sys 
-import os
-sys.path.append(os.path.relpath("../"))
 
 from codietpgm.structure.DynamicBayesianNetwork import DynamicBayesianNetwork, GaussianDBN, BinaryDBN, LSEMDBN
 from codietpgm.structure.transitionmodels import Transition

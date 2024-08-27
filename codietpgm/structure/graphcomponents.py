@@ -1,6 +1,3 @@
-import sys 
-import os
-sys.path.append(os.path.relpath("../../"))
 from codietpgm.utils.statstools import Sampler
 
 class Node:
