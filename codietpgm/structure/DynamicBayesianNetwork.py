@@ -2,13 +2,13 @@ import numpy as np
 import networkx as nx
 from codietpgm.structure.ProbabilisticGraphicalModel import ProbabilisticGraphicalModel
 from codietpgm.structure.transitionmodels import Transition
-from codietpgm.structure.transitionmodels import StatisticalModel
-from codietpgm.structure.graphcomponents import Node, Edge
+from codietpgm.structure.graphcomponents import Node
+
 
 class DynamicBayesianNetwork(ProbabilisticGraphicalModel):
     def __init__(self, nodes, backend=np, models=None, max_lag=4, graph_t=None, static_dep=None, autoregressive_tensor=None):
         self._nodes = {(1 if node._dynamic else 0, node._time_index or 0, node._num): node for node in nodes}
-        self.backend = backend
+        self._backend = backend
         self._transitions = {}
         self._static_nodes = [(0, 0, n._num) for n in nodes if not n._dynamic]
         self._active_nodes = [(1, 0, n._num) for n in nodes if n._dynamic and n._time_index == 0]
@@ -135,6 +135,7 @@ class DynamicBayesianNetwork(ProbabilisticGraphicalModel):
         
         self.update_transitions()
 
+
 def initialize_transitions(self):
     for b, l, n in self._active_nodes:
         node = self._nodes.get((b, l, n))
@@ -151,9 +152,6 @@ def initialize_transitions(self):
         if input_nodes:  # Ensure input nodes are not empty
             self._transitions[(b, l, n)] = Transition(node._model, input_nodes)
 
-
-
-
                 
 class GaussianDBN(DynamicBayesianNetwork):
     def __init__(self, nodes, model_type=['Gaussian','Gaussian'], max_lag=4, graph_t=None, static_dep=None, autoregressive_tensor=None):
@@ -168,6 +166,7 @@ class GaussianDBN(DynamicBayesianNetwork):
                          static_dep=static_dep,
                          autoregressive_tensor=autoregressive_tensor)
 
+
 class BinaryDBN(DynamicBayesianNetwork):
     def __init__(self, nodes, model_type='Linear', max_lag=4, graph_t=None, static_dep=None, autoregressive_tensor=None):
         dynamic_nodes_lag0 = [(1, 0, node._num) for node in nodes if node._dynamic and node._time_index == 0]
@@ -180,6 +179,7 @@ class BinaryDBN(DynamicBayesianNetwork):
                          graph_t=graph_t,
                          static_dep=static_dep,
                          autoregressive_tensor=autoregressive_tensor)
+
 
 class LSEMDBN(DynamicBayesianNetwork):
     def __init__(self, nodes, model_type=['Real','LSEM'], max_lag=4, graph_t=None, static_dep=None, autoregressive_tensor=None):
