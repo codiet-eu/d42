@@ -9,4 +9,5 @@ class ProbabilisticGraphicalModel(ABC):
         Constructs an instance.
         :param nodes: The set of nodes, one for each variable, in the model.
         """
+        # Initialize _nodes as a hashmap with keys as tuples (b, l, n) and values as
         self._nodes = {node.name: node for node in nodes}

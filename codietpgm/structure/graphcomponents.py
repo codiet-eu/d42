@@ -1,14 +1,24 @@
+import sys 
+import os
+sys.path.append(os.path.relpath("../../"))
+from codietpgm.utils.statstools import Sampler
+
 class Node:
-    def __init__(self, name, node_type, distribution, model=None, observed=False, dynamic=False, time_index=None):
-        self._name = name
-        self._node_type = node_type
-        self._distribution = distribution
-        self._label = name
-        self._time_index = time_index
+    def __init__(self, name, node_type, num, distribution, model=None, value=None, observed=False, dynamic=False, time_index=None, \
+    discrete_set=None):
+        self._name = name  # e.g., 'X1(5)'
+        self._type = node_type  # e.g., 'X1(t-1)'        
+        self._num = num  # e.g., 1. if it is -1, it is not in the DBN model but an extra node
+        self._distribution = distribution  # Bernoulli, multinomial, etc.
+        self._label = name  # annotation, e.g., 'treatment'
+        self._time_index = time_index  # 0 or -1 ...
         self._model = model
-        self._observed = observed
-        self._dynamic = dynamic
-        # TODO node should be hashable with node.name as key, searching using name in dictionaries is unfriendly for the user
+        self._value = value
+        self._observed = observed  # bool
+        self._dynamic = dynamic  # bool
+        self._sampler = Sampler(1,distribution)  # a possibility to sample the distribution of an instance
+        self._discrete_set = discrete_set  # Optional discrete set for multinomial values
+
 
 
 class Edge:

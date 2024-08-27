@@ -2,86 +2,195 @@ import numpy as np
 import networkx as nx
 from codietpgm.structure.ProbabilisticGraphicalModel import ProbabilisticGraphicalModel
 from codietpgm.structure.transitionmodels import Transition
-from codietpgm.structure.transitionmodels import GaussianModel
-from codietpgm.structure.graphcomponents import Node
+from codietpgm.structure.transitionmodels import StatisticalModel
+from codietpgm.structure.graphcomponents import Node, Edge
 
-
-'''
-A class for storing dynamic bayesian networks. The network consists of nodes, some of which are static (inidicated by
-False in node.dynamic flag). Then the main parameters are the causal graph at time t, and graph at time t-1, stored as
-networkx structures. Then there are autoregresive matrix, and a matrix that stores ...
-'''
 class DynamicBayesianNetwork(ProbabilisticGraphicalModel):
-    def __init__(self, nodes, models=None, max_lag=1, autoregressive_lag=4):
-        super().__init__(nodes)
-        self._nodes = nodes
-        # so far, I will be trying to keep this without this cached ... static nodes should be subset of nodes, otherwise [n for n in nodes if not n.dynamic]
-        #self._static_nodes = static_nodes  # Z does not depend on t
+    def __init__(self, nodes, backend=np, models=None, max_lag=4, graph_t=None, static_dep=None, autoregressive_tensor=None):
+        self._nodes = {(1 if node._dynamic else 0, node._time_index or 0, node._num): node for node in nodes}
+        self.backend = backend
         self._transitions = {}
-        self._graph_t = nx.DiGraph() #TODO ineffective, but keep it so far - better initialization would be preferred
-        self._graph_t_minus_one = nx.DiGraph()
-        self._autoregressive_matrix = np.zeros((len(nodes), autoregressive_lag))
+        self._static_nodes = [(0, 0, n._num) for n in nodes if not n._dynamic]
+        self._active_nodes = [(1, 0, n._num) for n in nodes if n._dynamic and n._time_index == 0]
+        self._nz = len(self._static_nodes)
         self._max_lag = max_lag
-        self._autoregressive_lag = autoregressive_lag
-        self._static_to_dynamic_matrix = np.zeros(sum([1 for n in nodes if n.dynamic]))  # another matrix from Z dimension to X dimension
-        self._initialize_transitions(models)
+        self._nx = (len(nodes) - self._nz) / (max_lag + 1)
 
-    #TODO this should be private method, right? The only exposed methods shold be the constructor, and update_structure?
-    def _initialize_transitions(self, models):
-        for node in self.nodes.values():
-            if node.dynamic:
-                #model is complete mess - they are in models map, in the nodes as well ... this needs to be sorted out to remove them from one or the other
-                # TODO: remove from the update methods ...
-                input_nodes_current = self.determine_input_nodes(node, self._graph_t)
-                input_nodes_previous = self.determine_input_nodes(node, self._graph_t_minus_one)
-                model = self.choose_model(node, input_nodes_current + input_nodes_previous, models)
-                self._transitions[node.name] = Transition(model, input_nodes_current + input_nodes_previous)
+        # Initialize graph_t if not provided
+        self._graph_t = nx.DiGraph() if graph_t is None else graph_t
+        
+        # Initialize static_dep if not provided
+        self._static_dep = np.zeros((self._nz, int(self._nx))) if static_dep is None else static_dep
+        
+        # Initialize autoregressive_tensor if not provided
+        self._autoregressive_tensor = np.zeros((max_lag, len(nodes), len(nodes)), dtype=int) if autoregressive_tensor is None else autoregressive_tensor
+        
+        # Initialize models as a local variable
+        self._models = models if models else {n._num: ['Custom', 'Custom'] for n in nodes if n._dynamic and n._time_index == 0}
 
-    def _determine_input_nodes(self, node, graph):
-        #TODO why? if static nodes are supposed to be subset of nodes?
-        return [self.nodes.get(n, self._static_nodes.get(n)) for n in graph.predecessors(node.name)]
+        # Initialize transitions
+        self.initialize_transitions()
 
-    def _choose_model(self, node, input_nodes, models):
-        # TODO node should be hashable with node.name as key, searching using name in dictionaries is unfriendly
-        model_type = models.get(node.name) if models and node.name in models else GaussianModel
-        return model_type(input_nodes, self.backend)
+    def initialize_transitions(self):
+        for b, l, n in self._active_nodes:
+            node = self._nodes[(b, l, n)]
+            input_nodes_current = self.determine_input_nodes(node, self._graph_t)
+            input_nodes_previous = self.determine_input_nodes_time(node, self._autoregressive_tensor)
+            model_type = self._models.get(node._num, ['Custom', 'Custom'])
+            node._model = model_type
+            input_nodes_static = self.determine_input_nodes_static(node, self._static_dep)
+            input_nodes = self.get_input_nodes(input_nodes_static, input_nodes_current, input_nodes_previous)
+            self._transitions[(b, l, n)] = Transition(node._model, input_nodes)
 
-    def step(self, values):
+    def determine_input_nodes_static(self, node, statmat):
+        input_node_indices = [row for row in range(statmat.shape[0]) if statmat[row, node._num] == 1]
+        return input_node_indices
+
+    def determine_input_nodes(self, node, graph):
+        return [self._nodes[(1, 0, n)] for n in graph.predecessors(node._num) if (1, 0, n) in self._nodes]
+
+    def determine_input_nodes_time(self, node, tensor):
+        input_node_indices = [(l, n) for l in range(tensor.shape[0]) for n in range(tensor.shape[1]) if tensor[l, n, node._num] == 1]
+        return input_node_indices
+
+    def get_input_nodes(self, input_nodes_static, input_nodes_current, input_nodes_previous):
+        selected_nodes = []
+        for b, l, n in self._nodes:
+            node = self._nodes[(b, l, n)]
+            if b == 0 and n in input_nodes_static:
+                selected_nodes.append(node)
+            elif b == 1 and l == 0 and n in input_nodes_current:
+                selected_nodes.append(node)
+            elif b == 1 and any(l == (lag - 1) and n == num for lag, num in input_nodes_previous):
+                selected_nodes.append(node)
+        return selected_nodes
+
+    def step(self):
         new_values = {}
-        for node_name, transition in self._transitions.items():
-            node = self._nodes[node_name]
-            if node.dynamic:
-                data = [values[n] for n in transition.input_nodes] # TODO how is the proper order of input nodes enforced?
-                new_values[node_name] = transition.evaluate(data)
+        initialized_nodes = set()  # Track nodes that have been initialized
+        nodes_to_initialize = [node for (b, l, n), node in self._nodes.items() if node._dynamic and node._time_index == 0]
 
-        for name, value in new_values.items():
-            node = self._nodes[name]
-            node.time_index = node.time_index + 1 #  copy constructor was here originally, no need for that, as the original value was rewritten
+        # Sort nodes by topological order in graph_t to ensure correct initialization sequence
+        topo_order = list(nx.topological_sort(self._graph_t))
+        nodes_to_initialize_sorted = [node for node in nodes_to_initialize if node._num in topo_order]
 
-    # TODO, ok, here, we fill in a new graph of predecessor, however, how the transition parameters get to the "model class"
-    def update_structure(self, new_graph_t=None, new_graph_t_minus_one=None, models=None):
-        # polymorphism on this method to have the possibility to update only one / None as a parameter to note that nothig changed
-        self._graph_t = new_graph_t
-        self._graph_t_minus_one = new_graph_t_minus_one
+        # Initialize dynamic nodes at time 0 if they haven't been initialized
+        for node in nodes_to_initialize_sorted:
+            if node._value is None:
+                # Check if all input nodes are initialized
+                transition = self._transitions[(1, 0, node._num)]
+                data = [input_node._value for input_node in transition.input_nodes]
+                
+                if all(value is not None for value in data):
+                    # All input nodes are initialized; proceed to initialize this node
+                    node._value = transition.evaluate(data)
+                    print(f"Initialized node {node._name} with value {node._value}")
+                    initialized_nodes.add((1, 0, node._num))
+                else:
+                    print(f"Cannot initialize node {node._name} yet; waiting for input nodes to be initialized.")
 
-        # original was private update transitions method for loop over all nodes times for loop over all nodes,
-        # that did not make sense at all, also did not contain a way to pass new parameters
-        self._initialize_transitions(models)
+        # If all time-lag=0 nodes are initialized, proceed to create nodes at time-lag=1
+        if len(initialized_nodes) == len(nodes_to_initialize):
+            for (b, l, n), transition in self._transitions.items():
+                if (b, l, n) in initialized_nodes:
+                    node = self._nodes[(b, l, n)]
+                    data = [n._value for n in transition.input_nodes]
+                    new_values[(b, l, n)] = transition.evaluate(data)
 
-    def get_graph_t(self):
-        return self._graph_t  # TODO view instead?, Is it Pythonish?
+            # Create new dynamic nodes at time 1 and copy transitions
+            for (b, l, n), value in new_values.items():
+                node = self._nodes[(b, l, n)]
+                new_node = Node(
+                    name=node._name, node_type=node._type, num=node._num,
+                    distribution=node._distribution, model=node._model,
+                    value=value, observed=node._observed, dynamic=node._dynamic,
+                    time_index=node._time_index + 1
+                )
+                self._nodes[(b, l + 1, n)] = new_node
 
-    def get_graph_t_minus_one(self):
-        return self._graph_t_minus_one
+                # Copy transitions from time-lag=0 to time-lag=1
+                old_transition = self._transitions[(1, 0, n)]
+                new_input_nodes = self.get_input_nodes(
+                    self.determine_input_nodes_static(new_node, self._static_dep),
+                    [inp._num for inp in old_transition.input_nodes if inp._dynamic and inp._time_index == 0],
+                    self.determine_input_nodes_time(new_node, self._autoregressive_tensor)
+                )
+                self._transitions[(1, l + 1, n)] = Transition(node._model, new_input_nodes)
 
-    def get_autoregressive_matrix(self):
-        return self._autoregressive_matrix
+    def update_structure(self, new_graph_t=None, new_static_dep=None, new_autoregressive_tensor=None):
+        """
+        Update the structure of the DBN including graph_t, static dependencies, and autoregressive tensor.
 
-    def get_static_to_dynamic_matrix(self):
-        return self._static_to_dynamic_matrix
+        Parameters:
+        - new_graph_t: Updated directed graph for in-time dependencies.
+        - new_static_dep: Updated static dependency matrix.
+        - new_autoregressive_tensor: Updated autoregressive tensor for lagged dependencies.
+        """
+        if new_graph_t is not None:
+            self._graph_t = new_graph_t
+        if new_static_dep is not None:
+            self._static_dep = new_static_dep
+        if new_autoregressive_tensor is not None:
+            self._autoregressive_tensor = new_autoregressive_tensor
+        
+        self.update_transitions()
 
-    def get_nodes(self):
-        return self._nodes
+def initialize_transitions(self):
+    for b, l, n in self._active_nodes:
+        node = self._nodes.get((b, l, n))
+        if not node:
+            continue  # Skip if the node is not found
+
+        input_nodes_current = self.determine_input_nodes(node, self._graph_t)
+        input_nodes_previous = self.determine_input_nodes_time(node, self._autoregressive_tensor)
+        model_type = self._models.get(node._num, ['Custom', 'Custom'])
+        node._model = model_type
+        input_nodes_static = self.determine_input_nodes_static(node, self._static_dep)
+        input_nodes = self.get_input_nodes(input_nodes_static, input_nodes_current, input_nodes_previous)
+
+        if input_nodes:  # Ensure input nodes are not empty
+            self._transitions[(b, l, n)] = Transition(node._model, input_nodes)
+
+
 
 
                 
+class GaussianDBN(DynamicBayesianNetwork):
+    def __init__(self, nodes, model_type=['Gaussian','Gaussian'], max_lag=4, graph_t=None, static_dep=None, autoregressive_tensor=None):
+        dynamic_nodes_lag0 = [(1, 0, node._num) for node in nodes if node._dynamic and node._time_index == 0]
+        models = {num: model_type for _, _, num in dynamic_nodes_lag0}
+
+        # Initialize Dynamic Bayesian Network
+        super().__init__(nodes=nodes,
+                         models=models,
+                         max_lag=max_lag,
+                         graph_t=graph_t,
+                         static_dep=static_dep,
+                         autoregressive_tensor=autoregressive_tensor)
+
+class BinaryDBN(DynamicBayesianNetwork):
+    def __init__(self, nodes, model_type='Linear', max_lag=4, graph_t=None, static_dep=None, autoregressive_tensor=None):
+        dynamic_nodes_lag0 = [(1, 0, node._num) for node in nodes if node._dynamic and node._time_index == 0]
+        models = {num: ['Bernoulli', model_type] for _, _, num in dynamic_nodes_lag0}
+
+        # Initialize Dynamic Bayesian Network
+        super().__init__(nodes=nodes,
+                         models=models,
+                         max_lag=max_lag,
+                         graph_t=graph_t,
+                         static_dep=static_dep,
+                         autoregressive_tensor=autoregressive_tensor)
+
+class LSEMDBN(DynamicBayesianNetwork):
+    def __init__(self, nodes, model_type=['Real','LSEM'], max_lag=4, graph_t=None, static_dep=None, autoregressive_tensor=None):
+        dynamic_nodes_lag0 = [(1, 0, node._num) for node in nodes if node._dynamic and node._time_index == 0]
+        models = {num: model_type for _, _, num in dynamic_nodes_lag0}
+
+        # Initialize Dynamic Bayesian Network
+        super().__init__(nodes=nodes,
+                         models=models,
+                         max_lag=max_lag,
+                         graph_t=graph_t,
+                         static_dep=static_dep,
+                         autoregressive_tensor=autoregressive_tensor)
+
