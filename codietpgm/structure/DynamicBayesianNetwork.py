@@ -2,7 +2,7 @@ import numpy as np
 import networkx as nx
 from codietpgm.structure.ProbabilisticGraphicalModel import ProbabilisticGraphicalModel
 from codietpgm.structure.transitionmodels import Transition
-from codietpgm.structure.graphcomponents import Node
+from codietpgm.structure.node import Node
 
 
 class DynamicBayesianNetwork(ProbabilisticGraphicalModel):
@@ -136,21 +136,21 @@ class DynamicBayesianNetwork(ProbabilisticGraphicalModel):
         self.update_transitions()
 
 
-def initialize_transitions(self):
-    for b, l, n in self._active_nodes:
-        node = self._nodes.get((b, l, n))
-        if not node:
-            continue  # Skip if the node is not found
+    def initialize_transitions(self):
+        for b, l, n in self._active_nodes:
+            node = self._nodes.get((b, l, n))
+            if not node:
+                continue  # Skip if the node is not found
 
-        input_nodes_current = self.determine_input_nodes(node, self._graph_t)
-        input_nodes_previous = self.determine_input_nodes_time(node, self._autoregressive_tensor)
-        model_type = self._models.get(node._num, ['Custom', 'Custom'])
-        node._model = model_type
-        input_nodes_static = self.determine_input_nodes_static(node, self._static_dep)
-        input_nodes = self.get_input_nodes(input_nodes_static, input_nodes_current, input_nodes_previous)
+            input_nodes_current = self.determine_input_nodes(node, self._graph_t)
+            input_nodes_previous = self.determine_input_nodes_time(node, self._autoregressive_tensor)
+            model_type = self._models.get(node._num, ['Custom', 'Custom'])
+            node._model = model_type
+            input_nodes_static = self.determine_input_nodes_static(node, self._static_dep)
+            input_nodes = self.get_input_nodes(input_nodes_static, input_nodes_current, input_nodes_previous)
 
-        if input_nodes:  # Ensure input nodes are not empty
-            self._transitions[(b, l, n)] = Transition(node._model, input_nodes)
+            if input_nodes:  # Ensure input nodes are not empty
+                self._transitions[(b, l, n)] = Transition(node._model, input_nodes)
 
                 
 class GaussianDBN(DynamicBayesianNetwork):

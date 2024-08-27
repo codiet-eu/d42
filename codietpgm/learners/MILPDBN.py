@@ -6,7 +6,7 @@ import numpy as np
 import networkx as nx
 
 from codietpgm.structure.DynamicBayesianNetwork import DynamicBayesianNetwork
-from codietpgm.structure.graphcomponents import Node
+from codietpgm.structure.node import Node
 from codietpgm.structure.transitionmodels import CustomModel
 
 

@@ -58,7 +58,7 @@ class MILPBN(BayesianNetworkLearner):
         bn = BayesianNetwork()
         return graph  # TODO return bn insttead once working ...
 
-    def _get_edges(self, g, beta, variables):
+    def _get_edges(g, beta, variables):
         edge_list = set()
         for i in range(len(variables)):
             for j in range(len(variables)):

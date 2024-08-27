@@ -17,6 +17,8 @@ class Node:
         self._sampler = Sampler(1,distribution)  # a possibility to sample the distribution of an instance
         self._discrete_set = discrete_set  # Optional discrete set for multinomial values
 
+    
+
     #TODO use properties
 
 

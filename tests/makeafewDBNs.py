@@ -5,7 +5,7 @@ import networkx as nx
 from codietpgm.structure.DynamicBayesianNetwork import DynamicBayesianNetwork, GaussianDBN, BinaryDBN, LSEMDBN
 from codietpgm.structure.transitionmodels import Transition
 from codietpgm.structure.transitionmodels import StatisticalModel
-from codietpgm.structure.graphcomponents import Node
+from codietpgm.structure.node import Node
 
 
 def generate_random_nodes(s, n, lag, distribution_type):
