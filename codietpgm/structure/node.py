@@ -14,12 +14,62 @@ class Node:
         self._value = value
         self._observed = observed  # bool
         self._dynamic = dynamic  # bool
-        self._sampler = Sampler(1,distribution)  # a possibility to sample the distribution of an instance
+        self._sampler = Sampler(1, distribution)  # a possibility to sample the distribution of an instance
         self._discrete_set = discrete_set  # Optional discrete set for multinomial values
 
-    
+    @property
+    def name(self):
+        """str: The name of the node. For, example 'X1(5)'. """
+        return self._name
 
-    #TODO use properties
+    @property
+    def type(self):
+        return self._type
+
+    @property
+    def num(self):
+        return self._num
+
+    @property
+    def distribution(self):
+        return self._distribution
+
+    @property
+    def label(self):
+        return self._label
+
+    @property
+    def time_index(self):
+        return self._time_index
+
+    @property
+    def model(self):
+        return self._model
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, new_value):
+        self._value = new_value
+
+    @property
+    def observed(self):
+        return self._observed
+
+    @property
+    def dynamic(self):
+        return self._dynamic
+
+    @property
+    def sampler(self):
+        return self._sampler
+
+    @property
+    def discrete_set(self):
+        return self._discrete_set
+
 
 
 

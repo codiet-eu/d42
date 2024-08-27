@@ -5,6 +5,7 @@ from codietpgm.utils.statstools import Sampler
 import statsmodels.api as sm
 from itertools import combinations
 
+
 class StatisticalModel(ABC):
     models = [
         ['Bernoulli', 'Linear'], ['Bernoulli', 'CPD'], ['Bernoulli', 'NoisyOr'], ['Bernoulli', 'Logit'],
@@ -37,21 +38,23 @@ class StatisticalModel(ABC):
     def evaluate(self, input_values):
         pass
 
+
 class GaussianModel(StatisticalModel):
     def __init__(self, input_nodes=None, output_node=None):
         super().__init__(input_nodes, output_node, distribution='gaussian')
         self.init_params()
 
     def init_params(self):
-        self.current_params = {node._name: np.random.normal(0, 1) for node in self.input_nodes}
+        self.current_params = {node.name: np.random.normal(0, 1) for node in self.input_nodes}
 
     def evaluate(self, input_values):
         if any(val is None for val in input_values):
             raise ValueError("Input values contain None, cannot perform evaluation.")
-        params = [self.current_params[node._name] for node in self.input_nodes if node._name in self.current_params]
+        params = [self.current_params[node.name] for node in self.input_nodes if node.name in self.current_params]
         if any(param is None for param in params):
             raise ValueError("Model parameters not properly initialized.")
         return np.dot(params, input_values)
+
 
 class LinearBinaryModel(StatisticalModel):
     def __init__(self, input_nodes=None, output_node=None):
@@ -59,18 +62,19 @@ class LinearBinaryModel(StatisticalModel):
         self.init_params()
 
     def init_params(self):
-        self.current_params = {node._name: np.random.lognormal(0, 1) for node in self.input_nodes}
+        self.current_params = {node.name: np.random.lognormal(0, 1) for node in self.input_nodes}
 
     def evaluate(self, input_values):
-        linear_combination = np.dot(input_values, np.array([self.current_params[node._name] for node in self.input_nodes]))
+        linear_combination = np.dot(input_values, np.array([self.current_params[node.name] for node in self.input_nodes]))
         probability = 1 / (1 + np.exp(-linear_combination))
         return np.random.binomial(1, probability)
 
     def sample_and_evaluate(self, input_values):
         sampled_params = self.sampler.sample_parameters()
         for i, node in enumerate(self.input_nodes):
-            self.current_params[node._name] = sampled_params[i]
+            self.current_params[node.name] = sampled_params[i]
         return self.evaluate(input_values)
+
 
 class CPDBinaryModel(StatisticalModel):
     def __init__(self, input_nodes=None, output_node=None):
@@ -79,13 +83,13 @@ class CPDBinaryModel(StatisticalModel):
 
     def init_params(self):
         self.current_params = {}
-        all_combinations = sum([list(combinations([node._name for node in self.input_nodes], i)) 
+        all_combinations = sum([list(combinations([node.name for node in self.input_nodes], i))
                                 for i in range(1, len(self.input_nodes) + 1)], [])
         for combination in all_combinations:
             self.current_params[combination] = np.random.uniform(-1, 1)
 
     def evaluate(self, input_values):
-        value_dict = {node._name: val for node, val in zip(self.input_nodes, input_values)}
+        value_dict = {node.name: val for node, val in zip(self.input_nodes, input_values)}
         intercept = self.current_params.get(tuple(), 0)
         linear_sum = sum(self.current_params[comb] * np.prod([value_dict[n] for n in comb]) for comb in self.current_params)
         probability = 1 / (1 + np.exp(-(intercept + linear_sum)))
@@ -96,6 +100,7 @@ class CPDBinaryModel(StatisticalModel):
         for comb in self.current_params.keys():
             self.current_params[comb] = sampled_params[0]  # Assuming same beta parameter for simplicity
         return self.evaluate(input_values)
+
 
 class GeneralizedLinearModel(StatisticalModel):
     def __init__(self, family=sm.families.Gaussian, link=sm.families.links.identity, input_nodes=None, output_node=None):
@@ -119,23 +124,25 @@ class GeneralizedLinearModel(StatisticalModel):
         self.model.params[:] = sampled_params
         return self.evaluate(input_values)
 
+
 class LinearStructuralEquationModel(StatisticalModel):
     def __init__(self, input_nodes=None, output_node=None):
         super().__init__(input_nodes, output_node, distribution='LSEM')
         self.init_params()
 
     def init_params(self):
-        self.current_params = {node._name: np.random.normal(0, 1) for node in self.input_nodes}
+        self.current_params = {node.name: np.random.normal(0, 1) for node in self.input_nodes}
 
     def evaluate(self, input_values):
-        result = np.dot([self.current_params[node._name] for node in self.input_nodes], input_values)
+        result = np.dot([self.current_params[node.name] for node in self.input_nodes], input_values)
         return result
 
     def sample_and_evaluate(self, input_values):
         sampled_params = self.sampler.sample_parameters()
         for i, node in enumerate(self.input_nodes):
-            self.current_params[node._name] = sampled_params[i]
+            self.current_params[node.name] = sampled_params[i]
         return self.evaluate(input_values)
+
 
 class CustomModel(StatisticalModel):
     def __init__(self, input_nodes=None, output_node=None, custom_function=None):
@@ -158,8 +165,9 @@ class CustomModel(StatisticalModel):
     def sample_and_evaluate(self, input_values):
         sampled_params = self.sampler.sample_parameters()
         for i, node in enumerate(self.input_nodes):
-            self.current_params[node._name] = sampled_params[i]
+            self.current_params[node.name] = sampled_params[i]
         return self.evaluate(input_values)
+
 
 class NoisyOrModel(StatisticalModel):
     def __init__(self, input_nodes=None, output_node=None):
@@ -167,11 +175,12 @@ class NoisyOrModel(StatisticalModel):
         self.init_params()
 
     def init_params(self):
-        self.current_params = {node._name: np.random.beta(1, 1) for node in self.input_nodes}
+        self.current_params = {node.name: np.random.beta(1, 1) for node in self.input_nodes}
 
     def evaluate(self, input_values):
-        noise = np.prod([1 - self.current_params[node._name] for node in self.input_nodes if input_values[node._name] == 1])
+        noise = np.prod([1 - self.current_params[node.name] for node in self.input_nodes if input_values[node.name] == 1])
         return 1 - noise
+
 
 class LogitModel(StatisticalModel):
     def __init__(self, input_nodes=None, output_node=None):
@@ -179,18 +188,19 @@ class LogitModel(StatisticalModel):
         self.init_params()
 
     def init_params(self):
-        self.current_params = {node._name: np.random.normal(0, 1) for node in self.input_nodes}
+        self.current_params = {node.name: np.random.normal(0, 1) for node in self.input_nodes}
 
     def evaluate(self, input_values):
-        linear_combination = np.dot([self.current_params[node._name] for node in self.input_nodes], input_values)
+        linear_combination = np.dot([self.current_params[node.name] for node in self.input_nodes], input_values)
         probability = 1 / (1 + np.exp(-linear_combination))
         return np.random.binomial(1, probability)
 
     def sample_and_evaluate(self, input_values):
         sampled_params = self.sampler.sample_parameters()
         for i, node in enumerate(self.input_nodes):
-            self.current_params[node._name] = sampled_params[i]
+            self.current_params[node.name] = sampled_params[i]
         return self.evaluate(input_values)
+
 
 class MultinomialLinearModel(StatisticalModel):
     def __init__(self, input_nodes=None, output_node=None, hyperparameters=None):
@@ -203,25 +213,26 @@ class MultinomialLinearModel(StatisticalModel):
         for node in self.input_nodes:
             discrete_set = node.get_discrete_set()
             if discrete_set:
-                self.current_params[node._name] = np.random.uniform(0, 1, len(discrete_set))
+                self.current_params[node.name] = np.random.uniform(0, 1, len(discrete_set))
             else:
-                raise ValueError(f"Input node {node._name} is not a discrete set.")
+                raise ValueError(f"Input node {node.name} is not a discrete set.")
 
     def evaluate(self, input_values):
         """Evaluate model using one-hot encoded input values."""
-        linear_combination = np.zeros(len(self.current_params[self.input_nodes[0]._name]))
+        linear_combination = np.zeros(len(self.current_params[self.input_nodes[0].name]))
         for node, value in zip(self.input_nodes, input_values):
-            one_hot_vector = np.zeros(len(self.current_params[node._name]))
+            one_hot_vector = np.zeros(len(self.current_params[node.name]))
             one_hot_vector[value] = 1  # One-hot encoding of the input value
-            linear_combination += self.current_params[node._name] * one_hot_vector
+            linear_combination += self.current_params[node.name] * one_hot_vector
         probabilities = np.exp(linear_combination) / np.sum(np.exp(linear_combination))
         return np.random.choice(len(probabilities), p=probabilities)
 
     def sample_and_evaluate(self, input_values):
         sampled_params = self.sampler.sample_parameters()
         for i, node in enumerate(self.input_nodes):
-            self.current_params[node._name] = sampled_params[i]
+            self.current_params[node.name] = sampled_params[i]
         return self.evaluate(input_values)
+
 
 class MultinomialCPDModel(StatisticalModel):
     def __init__(self, input_nodes=None, output_node=None, hyperparameters=None):
@@ -231,14 +242,14 @@ class MultinomialCPDModel(StatisticalModel):
     def init_params(self):
         """Initialize parameters for conditional probability distribution."""
         self.current_params = {}
-        all_combinations = sum([list(combinations([node._name for node in self.input_nodes], i)) 
+        all_combinations = sum([list(combinations([node.name for node in self.input_nodes], i))
                                 for i in range(1, len(self.input_nodes) + 1)], [])
         for combination in all_combinations:
             self.current_params[combination] = np.random.dirichlet(np.ones(len(self.input_nodes)))
 
     def evaluate(self, input_values):
         """Evaluate model using the input values and CPD parameters."""
-        value_dict = {node._name: val for node, val in zip(self.input_nodes, input_values)}
+        value_dict = {node.name: val for node, val in zip(self.input_nodes, input_values)}
         combination_key = tuple(value_dict.keys())
         probabilities = self.current_params.get(combination_key, np.ones(len(self.input_nodes)) / len(self.input_nodes))
         return np.random.choice(len(probabilities), p=probabilities)
@@ -248,6 +259,7 @@ class MultinomialCPDModel(StatisticalModel):
         for comb in self.current_params.keys():
             self.current_params[comb] = sampled_params
         return self.evaluate(input_values)
+
 
 class MultinomialLogitModel(StatisticalModel):
     def __init__(self, input_nodes=None, output_node=None, hyperparameters=None):
@@ -260,25 +272,27 @@ class MultinomialLogitModel(StatisticalModel):
         for node in self.input_nodes:
             discrete_set = node.get_discrete_set()
             if discrete_set:
-                self.current_params[node._name] = np.random.normal(0, 1, len(discrete_set))
+                self.current_params[node.name] = np.random.normal(0, 1, len(discrete_set))
             else:
-                raise ValueError(f"Input node {node._name} is not a discrete set.")
+                raise ValueError(f"Input node {node.name} is not a discrete set.")
 
     def evaluate(self, input_values):
         """Evaluate model using logit function and input values."""
-        logits = np.zeros(len(self.current_params[self.input_nodes[0]._name]))
+        logits = np.zeros(len(self.current_params[self.input_nodes[0].name]))
         for node, value in zip(self.input_nodes, input_values):
-            one_hot_vector = np.zeros(len(self.current_params[node._name]))
+            one_hot_vector = np.zeros(len(self.current_params[node.name]))
             one_hot_vector[value] = 1  # One-hot encoding of the input value
-            logits += self.current_params[node._name] * one_hot_vector
+            logits += self.current_params[node.name] * one_hot_vector
         probabilities = np.exp(logits) / np.sum(np.exp(logits))
         return np.random.choice(len(probabilities), p=probabilities)
 
     def sample_and_evaluate(self, input_values):
         sampled_params = self.sampler.sample_parameters()
         for i, node in enumerate(self.input_nodes):
-            self.current_params[node._name] = sampled_params[i]
+            self.current_params[node.name] = sampled_params[i]
         return self.evaluate(input_values)
+
+
 class CustomModel(StatisticalModel):
     def __init__(self, input_nodes=None, output_node=None, custom_function=None, hyperparameters=None):
         """

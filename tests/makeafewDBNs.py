@@ -135,6 +135,7 @@ def instantiate_random_gaussian_dbn(s, n, lag):
 
     return dbn
 
+
 def instantiate_random_binary_dbn(s, n, lag, model_type='Linear'):
     """
     Instantiate a random Binary Dynamic Bayesian Network.
@@ -162,6 +163,7 @@ def instantiate_random_binary_dbn(s, n, lag, model_type='Linear'):
     )
 
     return dbn
+
 
 def instantiate_random_lsem_dbn(s, n, lag):
     """
@@ -197,13 +199,13 @@ gaussian_dbn = instantiate_random_gaussian_dbn(s=2, n=3, lag=2)
 # Print basic information about the Gaussian DBN
 print("Gaussian DBN Nodes:")
 for node in gaussian_dbn._nodes.values():
-    print(f"Node {node._name} - Dynamic: {node._dynamic}, Time Index: {node._time_index}, Model: {node._model}, Value: {node._value}")
+    print(f"Node {node.name} - Dynamic: {node.dynamic}, Time Index: {node.time_index}, Model: {node.model}, Value: {node.value}")
 
 # Perform a step in the Gaussian DBN
 gaussian_dbn.step()
 print("\nAfter stepping (Gaussian DBN):")
 for node in gaussian_dbn._nodes.values():
-    print(f"Node {node._name} - Value: {node._value}")
+    print(f"Node {node.name} - Value: {node.value}")
 
 # Instantiate a random Binary DBN with a linear model
 binary_dbn = instantiate_random_binary_dbn(s=2, n=3, lag=2)
@@ -211,13 +213,13 @@ binary_dbn = instantiate_random_binary_dbn(s=2, n=3, lag=2)
 # Print basic information about the Binary DBN
 print("\nBinary DBN Nodes:")
 for node in binary_dbn._nodes.values():
-    print(f"Node {node._name} - Dynamic: {node._dynamic}, Time Index: {node._time_index}, Model: {node._model}, Value: {node._value}")
+    print(f"Node {node.name} - Dynamic: {node.dynamic}, Time Index: {node.time_index}, Model: {node.model}, Value: {node.value}")
 
 # Perform a step in the Binary DBN
 binary_dbn.step()
 print("\nAfter stepping (Binary DBN):")
 for node in binary_dbn._nodes.values():
-    print(f"Node {node._name} - Value: {node._value}")
+    print(f"Node {node.name} - Value: {node.value}")
 
 # Instantiate a random LSEM DBN
 lsem_dbn = instantiate_random_lsem_dbn(s=2, n=3, lag=2)
@@ -225,11 +227,11 @@ lsem_dbn = instantiate_random_lsem_dbn(s=2, n=3, lag=2)
 # Print basic information about the LSEM DBN
 print("\nLSEM DBN Nodes:")
 for node in lsem_dbn._nodes.values():
-    print(f"Node {node._name} - Dynamic: {node._dynamic}, Time Index: {node._time_index}, Model: {node._model}, Value: {node._value}")
+    print(f"Node {node.name} - Dynamic: {node.dynamic}, Time Index: {node.time_index}, Model: {node.model}, Value: {node.value}")
 
 # Perform a step in the LSEM DBN
 lsem_dbn.step()
 print("\nAfter stepping (LSEM DBN):")
 for node in lsem_dbn._nodes.values():
-    print(f"Node {node._name} - Value: {node._value}")
+    print(f"Node {node.name} - Value: {node.value}")
 
