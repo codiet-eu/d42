@@ -24,7 +24,7 @@ def run_R(script, arg_dict):
     args_json = json.dumps(arg_dict)
 
     # Check if the method is available
-    available_scripts = ["bnstruct", "mcmc_bidag"] #TO DO:add dbnr as well
+    available_scripts = ["bnstruct", "mcmc_bidag", "dbnr"] 
     if script not in available_scripts:
         print("Error: method not available")
         return None
