@@ -4,10 +4,13 @@ import networkx as nx
 
 from pathlib import Path
 from numpy.random import default_rng
-from gfn.bde_score import DBNBDeScore
-from gfn.bge_score import DBNBGeScore
-from dag_gflownet.scores import BDeScore, BGeScore, priors
-from dag_gflownet.utils.factories import get_prior
+from codietpgm.gfn.bde_score import DBNBDeScore
+from codietpgm.gfn.bge_score import DBNBGeScore
+from codietpgm.dag_gflownet.scores.bde_score import BDeScore
+from codietpgm.dag_gflownet.scores.bge_score import BGeScore
+from codietpgm.dag_gflownet.scores.priors import *
+from codietpgm.dag_gflownet.utils.factories import get_prior
+
 
 def get_data(args, rng=default_rng()):
 
@@ -22,6 +25,7 @@ def get_data(args, rng=default_rng()):
     score = args['score']
 
     return graph, data, score
+
 
 def get_scorer(args, rng=default_rng()):
 
@@ -40,10 +44,12 @@ def get_scorer(args, rng=default_rng()):
 
     return scorer, data, graph
 
+
 def min_max_normalize(scores):
     min_score = np.min(scores)
     max_score = np.max(scores)
     return (scores - min_score) / (max_score - min_score)
+
 
 def save_results(posterior, args=None):
     output_folder = Path(args['output_folder'])

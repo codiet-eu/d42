@@ -1,14 +1,10 @@
-import math
-import numpy as np
 import pandas as pd
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning) 
 
-from scipy.special import gammaln
 from collections import namedtuple
 
-from dag_gflownet.scores.base import BaseScore, LocalScore
-from dag_gflownet.scores import BDeScore
+from codietpgm.dag_gflownet.scores.bde_score import BDeScore
 
 StateCounts = namedtuple('StateCounts', ['key', 'counts'])
 
@@ -16,7 +12,8 @@ StateCounts = namedtuple('StateCounts', ['key', 'counts'])
 class DBNBDeScore(BDeScore):
     """BDe score for DBN 
     """
-    def __init__(data, 
+    def __init__(self,
+                 data,
                  prior, 
                  num_vars, 
                  num_time_slices, 

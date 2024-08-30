@@ -2,9 +2,10 @@ import numpy as np
 import math
 
 from numpy.random import default_rng
-from dag_gflownet.utils.replay_buffer import ReplayBuffer
+from codietpgm.dag_gflownet.utils.replay_buffer import ReplayBuffer
 
-from gfn.factories import min_max_normalize
+from codietpgm.gfn.factories import min_max_normalize
+
 
 class PrioritizedReplayBuffer(ReplayBuffer):
 

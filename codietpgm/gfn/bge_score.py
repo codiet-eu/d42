@@ -3,9 +3,10 @@ import numpy as np
 
 from scipy.special import gammaln
 
-from dag_gflownet.scores.base import BaseScore, LocalScore
-from dag_gflownet.scores import BGeScore
-from dag_gflownet.scores.bge_score import logdet
+from codietpgm.dag_gflownet.scores.base import LocalScore
+from codietpgm.dag_gflownet.scores.bge_score import BGeScore
+from codietpgm.dag_gflownet.scores.bge_score import logdet
+
 
 class DBNBGeScore(BGeScore):
         

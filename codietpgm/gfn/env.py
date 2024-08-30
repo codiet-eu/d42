@@ -6,7 +6,7 @@ from multiprocessing import get_context
 from copy import deepcopy
 from gym.spaces import Dict, Box, Discrete
 
-from dag_gflownet.env import GFlowNetDAGEnv
+from codietpgm.dag_gflownet.env import GFlowNetDAGEnv
 
 
 class GFlowNetDBNEnv(GFlowNetDAGEnv):
