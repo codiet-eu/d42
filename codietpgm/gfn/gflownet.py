@@ -1,5 +1,4 @@
 import jax.numpy as jnp
-import haiku as hk
 import optax
 import time
 import matplotlib.pyplot as plt
@@ -13,6 +12,7 @@ from codietpgm.dag_gflownet.utils.gflownet import uniform_log_policy
 from codietpgm.dag_gflownet.utils.jnp_utils import batch_random_choice
 from codietpgm.gfn.gfn_loss import detailed_balance_loss
 from codietpgm.dag_gflownet.gflownet import DAGGFlowNet
+
 
 class DBNGFlowNet_PER(DAGGFlowNet):
     """DAG-GFlowNet.
