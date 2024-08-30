@@ -6,7 +6,8 @@ from codietpgm.structure.node import Node
 
 
 class DynamicBayesianNetwork(ProbabilisticGraphicalModel):
-    def __init__(self, nodes, backend=np, models=None, max_lag=4, graph_t=None, static_dep=None, autoregressive_tensor=None):
+    def __init__(self, nodes, backend=np, models=None, max_lag=4, graph_t=None, static_dep=None,
+                 autoregressive_tensor=None):
         self._nodes = {(1 if node.dynamic else 0, node.time_index or 0, node.num): node for node in nodes}
         self._backend = backend
         self._transitions = {}
@@ -18,15 +19,17 @@ class DynamicBayesianNetwork(ProbabilisticGraphicalModel):
 
         # Initialize graph_t if not provided
         self._graph_t = nx.DiGraph() if graph_t is None else graph_t
-        
+
         # Initialize static_dep if not provided
         self._static_dep = np.zeros((self._nz, int(self._nx))) if static_dep is None else static_dep
-        
+
         # Initialize autoregressive_tensor if not provided
-        self._autoregressive_tensor = np.zeros((max_lag, len(nodes), len(nodes)), dtype=int) if autoregressive_tensor is None else autoregressive_tensor
-        
+        self._autoregressive_tensor = np.zeros((max_lag, len(nodes), len(nodes)),
+                                               dtype=int) if autoregressive_tensor is None else autoregressive_tensor
+
         # Initialize models as a local variable
-        self._models = models if models else {n.num: ['Custom', 'Custom'] for n in nodes if n.dynamic and n.time_index == 0}
+        self._models = models if models else {n.num: ['Custom', 'Custom'] for n in nodes if
+                                              n.dynamic and n.time_index == 0}
 
         # Initialize transitions
         self.initialize_transitions()
@@ -39,7 +42,8 @@ class DynamicBayesianNetwork(ProbabilisticGraphicalModel):
         return [self._nodes[(1, 0, n)] for n in graph.predecessors(node.num) if (1, 0, n) in self._nodes]
 
     def determine_input_nodes_time(self, node, tensor):
-        input_node_indices = [(l, n) for l in range(tensor.shape[0]) for n in range(tensor.shape[1]) if tensor[l, n, node.num] == 1]
+        input_node_indices = [(l, n) for l in range(tensor.shape[0]) for n in range(tensor.shape[1]) if
+                              tensor[l, n, node.num] == 1]
         return input_node_indices
 
     def get_input_nodes(self, input_nodes_static, input_nodes_current, input_nodes_previous):
@@ -69,7 +73,7 @@ class DynamicBayesianNetwork(ProbabilisticGraphicalModel):
                 # Check if all input nodes are initialized
                 transition = self._transitions[(1, 0, node.num)]
                 data = [input_node.value for input_node in transition.input_nodes]
-                
+
                 if all(value is not None for value in data):
                     # All input nodes are initialized; proceed to initialize this node
                     node.value = transition.evaluate(data)
@@ -121,9 +125,8 @@ class DynamicBayesianNetwork(ProbabilisticGraphicalModel):
             self._static_dep = new_static_dep
         if new_autoregressive_tensor is not None:
             self._autoregressive_tensor = new_autoregressive_tensor
-        
-        self.update_transitions()
 
+        self.update_transitions()
 
     def initialize_transitions(self):
         for b, l, n in self._active_nodes:
@@ -212,9 +215,11 @@ class DynamicBayesianNetwork(ProbabilisticGraphicalModel):
     def models(self):
         """dict: Models associated with dynamic nodes."""
         return self._models
-                
+
+
 class GaussianDBN(DynamicBayesianNetwork):
-    def __init__(self, nodes, model_type=['Gaussian', 'Gaussian'], max_lag=4, graph_t=None, static_dep=None, autoregressive_tensor=None):
+    def __init__(self, nodes, model_type=['Gaussian', 'Gaussian'], max_lag=4, graph_t=None, static_dep=None,
+                 autoregressive_tensor=None):
         dynamic_nodes_lag0 = [(1, 0, node.num) for node in nodes if node.dynamic and node.time_index == 0]
         models = {num: model_type for _, _, num in dynamic_nodes_lag0}
 
@@ -228,7 +233,8 @@ class GaussianDBN(DynamicBayesianNetwork):
 
 
 class BinaryDBN(DynamicBayesianNetwork):
-    def __init__(self, nodes, model_type='Linear', max_lag=4, graph_t=None, static_dep=None, autoregressive_tensor=None):
+    def __init__(self, nodes, model_type='Linear', max_lag=4, graph_t=None, static_dep=None,
+                 autoregressive_tensor=None):
         dynamic_nodes_lag0 = [(1, 0, node.num) for node in nodes if node.dynamic and node.time_index == 0]
         models = {num: ['Bernoulli', model_type] for _, _, num in dynamic_nodes_lag0}
 
@@ -242,7 +248,8 @@ class BinaryDBN(DynamicBayesianNetwork):
 
 
 class LSEMDBN(DynamicBayesianNetwork):
-    def __init__(self, nodes, model_type=['Real', 'LSEM'], max_lag=4, graph_t=None, static_dep=None, autoregressive_tensor=None):
+    def __init__(self, nodes, model_type=['Real', 'LSEM'], max_lag=4, graph_t=None, static_dep=None,
+                 autoregressive_tensor=None):
         dynamic_nodes_lag0 = [(1, 0, node.num) for node in nodes if node.dynamic and node.time_index == 0]
         models = {num: model_type for _, _, num in dynamic_nodes_lag0}
 
@@ -253,4 +260,3 @@ class LSEMDBN(DynamicBayesianNetwork):
                          graph_t=graph_t,
                          static_dep=static_dep,
                          autoregressive_tensor=autoregressive_tensor)
-
