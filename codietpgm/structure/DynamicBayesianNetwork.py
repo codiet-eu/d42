@@ -152,6 +152,77 @@ class DynamicBayesianNetwork(ProbabilisticGraphicalModel):
             if input_nodes:  # Ensure input nodes are not empty
                 self._transitions[(b, l, n)] = Transition(node.model, input_nodes)
 
+    # Getter for _nodes
+    @property
+    def nodes(self):
+        """dict: A dictionary mapping node keys to node objects."""
+        return self._nodes
+
+    # Getter for _backend
+    @property
+    def backend(self):
+        """numpy module: Backend used for numerical computations."""
+        return self._backend
+
+    # Getter for _transitions
+    @property
+    def transitions(self):
+        """dict: Transitions for the nodes."""
+        return self._transitions
+
+    # Getter for _static_nodes
+    @property
+    def static_nodes(self):
+        """list: A list of static node identifiers."""
+        return self._static_nodes
+
+    # Getter for _active_nodes
+    @property
+    def active_nodes(self):
+        """list: A list of active node identifiers."""
+        return self._active_nodes
+
+    # Getter for _nz
+    @property
+    def nz(self):
+        """int: Number of static nodes."""
+        return self._nz
+
+    # Getter for _max_lag
+    @property
+    def max_lag(self):
+        """int: Maximum lag."""
+        return self._max_lag
+
+    # Getter for _nx
+    @property
+    def nx(self):
+        """float: The computed nx value based on nodes and max lag."""
+        return self._nx
+
+    # Getter for _graph_t
+    @property
+    def graph_t(self):
+        """networkx.DiGraph: The directed graph representing transitions."""
+        return self._graph_t
+
+    # Getter for _static_dep
+    @property
+    def static_dep(self):
+        """numpy.ndarray: Static dependency matrix."""
+        return self._static_dep
+
+    # Getter for _autoregressive_tensor
+    @property
+    def autoregressive_tensor(self):
+        """numpy.ndarray: Tensor representing autoregressive dependencies."""
+        return self._autoregressive_tensor
+
+    # Getter for _models
+    @property
+    def models(self):
+        """dict: Models associated with dynamic nodes."""
+        return self._models
                 
 class GaussianDBN(DynamicBayesianNetwork):
     def __init__(self, nodes, model_type=['Gaussian', 'Gaussian'], max_lag=4, graph_t=None, static_dep=None, autoregressive_tensor=None):
