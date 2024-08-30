@@ -31,17 +31,6 @@ class DynamicBayesianNetwork(ProbabilisticGraphicalModel):
         # Initialize transitions
         self.initialize_transitions()
 
-    def initialize_transitions(self):
-        for b, l, n in self._active_nodes:
-            node = self._nodes[(b, l, n)]
-            input_nodes_current = self.determine_input_nodes(node, self._graph_t)
-            input_nodes_previous = self.determine_input_nodes_time(node, self._autoregressive_tensor)
-            model_type = self._models.get(node.num, ['Custom', 'Custom'])
-            node._model = model_type
-            input_nodes_static = self.determine_input_nodes_static(node, self._static_dep)
-            input_nodes = self.get_input_nodes(input_nodes_static, input_nodes_current, input_nodes_previous)
-            self._transitions[(b, l, n)] = Transition(node._model, input_nodes)
-
     def determine_input_nodes_static(self, node, statmat):
         input_node_indices = [row for row in range(statmat.shape[0]) if statmat[row, node.num] == 1]
         return input_node_indices
