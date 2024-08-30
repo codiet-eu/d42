@@ -1,5 +1,7 @@
 # CodietPGM
 
+![image](https://www.codiet.eu/wp-content/themes/codiet/library/images/logo.png)
+
 This repository represents a toolkit for structure learning of DBNs in the CoDiet [1]
 project. Currently, this repository is under development. The goal is to finally
 extend this repository into a toolkit that would complement `pgmpy` library [2] in the
