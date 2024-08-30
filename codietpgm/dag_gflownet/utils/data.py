@@ -6,8 +6,8 @@ from pathlib import Path
 from numpy.random import default_rng
 from pgmpy.utils import get_example_model
 
-from dag_gflownet.utils.graph import sample_erdos_renyi_linear_gaussian
-from dag_gflownet.utils.sampling import sample_from_linear_gaussian
+from codietpgm.dag_gflownet.utils.graph import sample_erdos_renyi_linear_gaussian
+from codietpgm.dag_gflownet.utils.sampling import sample_from_linear_gaussian
 
 
 def download(url, filename):

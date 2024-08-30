@@ -3,7 +3,7 @@ import numpy as np
 
 from scipy.special import gammaln
 
-from dag_gflownet.scores.base import BaseScore, LocalScore
+from codietpgm.dag_gflownet.scores.base import BaseScore, LocalScore
 
 
 def logdet(array):

@@ -5,7 +5,7 @@ import pandas as pd
 from scipy.special import gammaln
 from collections import namedtuple
 
-from dag_gflownet.scores.base import BaseScore, LocalScore
+from codietpgm.dag_gflownet.scores.base import BaseScore, LocalScore
 
 
 StateCounts = namedtuple('StateCounts', ['key', 'counts'])

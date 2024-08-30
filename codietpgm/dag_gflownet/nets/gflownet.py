@@ -1,8 +1,8 @@
 import jax.numpy as jnp
 import haiku as hk
 
-from dag_gflownet.nets.transformers import TransformerBlock
-from dag_gflownet.utils.gflownet import log_policy
+from codietpgm.dag_gflownet.nets.transformers import TransformerBlock
+from codietpgm.dag_gflownet.utils.gflownet import log_policy
 
 
 def gflownet(adjacency, mask):

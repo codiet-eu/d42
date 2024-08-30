@@ -6,9 +6,9 @@ from collections import namedtuple
 from functools import partial
 from jax import grad, random, vmap, jit
 
-from dag_gflownet.nets.gflownet import gflownet
-from dag_gflownet.utils.gflownet import uniform_log_policy, detailed_balance_loss
-from dag_gflownet.utils.jnp_utils import batch_random_choice
+from codietpgm.dag_gflownet.nets.gflownet import gflownet
+from codietpgm.dag_gflownet.utils.gflownet import uniform_log_policy, detailed_balance_loss
+from codietpgm.dag_gflownet.utils.jnp_utils import batch_random_choice
 
 
 DAGGFlowNetParameters = namedtuple('DAGGFlowNetParameters', ['online', 'target'])

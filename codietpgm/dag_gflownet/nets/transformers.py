@@ -3,7 +3,7 @@ import haiku as hk
 
 from jax import nn
 
-from dag_gflownet.nets.attention import LinearMultiHeadAttention
+from codietpgm.dag_gflownet.nets.attention import LinearMultiHeadAttention
 
 
 class DenseBlock(hk.Module):

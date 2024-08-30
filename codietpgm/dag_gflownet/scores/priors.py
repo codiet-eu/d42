@@ -3,7 +3,7 @@ import math
 
 from scipy.special import gammaln
 
-from dag_gflownet.scores.base import BasePrior
+from codietpgm.dag_gflownet.scores.base import BasePrior
 
 
 class UniformPrior(BasePrior):

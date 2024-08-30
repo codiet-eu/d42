@@ -1,7 +1,7 @@
 from numpy.random import default_rng
 
-from dag_gflownet.scores import BDeScore, BGeScore, priors
-from dag_gflownet.utils.data import get_data
+from codietpgm.dag_gflownet.scores import BDeScore, BGeScore, priors
+from codietpgm.dag_gflownet.utils.data import get_data
 
 
 def get_prior(name, **kwargs):
