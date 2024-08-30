@@ -23,9 +23,20 @@ The repository contains several bundles of code. There are structured as follows
 * In `utils`, you can find helper code. 
 * The `evaluation` folder (under development) will contain tools to compare different
   results obtained by learners.
+* Folder `dag_gflownet` contians a snapshot of the GFlowNet package [6]. As this package
+  cannot be installed using `pip` (yet), we decided to include its copy in here.
+* In `gfn` directory, you can find code for using GFlowNet.
+* Folder `R_codes` contains R code that can be used to learn using BNStruct [4] and MCMC
+  BiDAG package [5].
 
 [1] https://www.codiet.eu/
 
 [2] https://pgmpy.org/
 
 [3] https://arxiv.org/abs/2406.17585
+
+[4] https://cran.r-project.org/web/packages/bnstruct/index.html
+
+[5] https://cran.r-project.org/web/packages/BiDAG/index.html
+
+[6] https://github.com/alexhernandezgarcia/gflownet
