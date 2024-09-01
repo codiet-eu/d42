@@ -3,7 +3,7 @@ import networkx as nx
 from codietpgm.structure.ProbabilisticGraphicalModel import ProbabilisticGraphicalModel
 from codietpgm.structure.transitionmodels import Transition
 from codietpgm.structure.transitionmodels import GaussianModel
-from codietpgm.structure.graphcomponents import Node
+from codietpgm.structure.node import Node
 
 
 class BayesianNetwork(ProbabilisticGraphicalModel):

@@ -1,3 +1,6 @@
+# pip install git+https://github.com/deepmind/dm-haiku
+# this one works, not haiku
+dm-haiku
 pandas~=2.2.1
 setuptools~=70.0.0
 numpy~=1.26.4
@@ -5,3 +8,10 @@ networkx~=3.3
 gurobipy~=11.0.2
 pgmpy~=0.1.25
 statsmodels~=0.14.1
+scikit-learn~=1.4.1.post1
+jax~=0.4.31
+tqdm~=4.66.2
+scipy~=1.13.0
+optax~=0.2.3
+matplotlib~=3.9.2
+gym~=0.26.2
